@@ -56,6 +56,14 @@ class User extends Authenticatable
     }
 
     /**
+     * 关联的操作审计日志
+     */
+    public function auditLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'user_id');
+    }
+
+    /**
      * 检查用户是否为系统超级管理员
      */
     public function isSuperAdmin(): bool

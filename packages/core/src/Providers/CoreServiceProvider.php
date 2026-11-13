@@ -3,6 +3,7 @@
 namespace AdminFlow\Core\Providers;
 
 use AdminFlow\Core\Commands\AdminInitCommand;
+use AdminFlow\Core\Services\AuditLogger;
 use Illuminate\Support\ServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
@@ -12,7 +13,9 @@ class CoreServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // 核心服务注册
+        $this->app->singleton(AuditLogger::class, function () {
+            return new AuditLogger();
+        });
     }
 
     /**

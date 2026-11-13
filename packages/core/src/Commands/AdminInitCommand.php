@@ -4,6 +4,7 @@ namespace AdminFlow\Core\Commands;
 
 use AdminFlow\Core\Enums\Role;
 use AdminFlow\Core\Models\User;
+use AdminFlow\Core\Services\AuditLogger;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
@@ -121,6 +122,18 @@ class AdminInitCommand extends Command
             'is_active' => true,
             'role' => Role::SUPER_ADMIN,
         ]);
+
+        // 记录操作审计日志
+        AuditLogger::record(
+            action: 'auth.admin_init',
+            target: $admin,
+            details: [
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'locale' => $locale ?: config('app.locale'),
+            ],
+            userId: $admin->id
+        );
 
         $this->newLine();
         $this->info($this->t('success', ['email' => $admin->email]));
