@@ -1,8 +1,8 @@
 # AdminFlow
 
 <p align="center">
-  <b>A Next-Gen, Ultra-Lightweight Modular Admin & Plugin Framework</b><br>
-  <i>Built with Laravel, Blade + htmx, Tailwind CSS, Preline UI & FrankenPHP</i>
+  <b>A Practical, Lightweight Admin Foundation & Plugin Framework</b><br>
+  <i>Built with PHP, Laravel, Blade + htmx, Tailwind CSS, Preline UI, and FrankenPHP</i>
 </p>
 
 <p align="center">
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.2%20|%208.3%20|%208.4-777BB4?style=flat-square&logo=php" alt="PHP Version">
-  <img src="https://img.shields.io/badge/Laravel-11.x%20|%20Latest-FF2D20?style=flat-square&logo=laravel" alt="Laravel Version">
+  <img src="https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Laravel-11.x%2B-FF2D20?style=flat-square&logo=laravel" alt="Laravel Version">
   <img src="https://img.shields.io/badge/UI-Tailwind%20%2B%20Preline-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind UI">
   <img src="https://img.shields.io/badge/Interactivity-htmx-336699?style=flat-square" alt="htmx">
   <img src="https://img.shields.io/badge/Runtime-FrankenPHP-00ADD8?style=flat-square" alt="FrankenPHP">
@@ -20,99 +20,101 @@
 
 ---
 
-## 💡 What is AdminFlow?
+## ☕ Why AdminFlow?
 
-**AdminFlow** is a modern, modular, single-instance enterprise administration foundation and plugin platform. 
+With AI coding tools, building basic CRUD screens has never been faster. However, running AI-generated code in real-world production often reveals subtle but painful headaches:
 
-In the AI era, building a simple CRUD dashboard takes only a few prompts. However, **pure-AI generated code leaves critical production traps**: silent race-condition overwrites, Broken Object Level Authorization (IDOR), un-audited state drifts, non-reversible migrations, and bloated SPA runtimes.
+* **Silent data overwrites**: Two users editing the same record concurrently can easily overwrite each other without version check warnings.
+* **Overlooked permission checks**: Queries that fetch data purely by ID without verifying record ownership lead to horizontal privilege escalation (IDOR).
+* **Bloated stacks**: Heavy backend runtimes eating 1–2 GB of idle RAM, coupled with complex frontend toolchains that are difficult to debug when builds fail.
 
-AdminFlow combines **decades of solid engineering expertise** with AI-assisted high-speed iteration to deliver an ultra-clean, high-performance, and bulletproof administrative foundation.
+AdminFlow is built on a straightforward premise: **combine years of hands-on full-stack engineering practices with AI acceleration to build an admin foundation that is clean, lightweight, and reliable by default.**
 
----
-
-## ⚡ Core Highlights
-
-### 🛡️ 1. Battle-Tested Against Pure-AI Traps
-* **Optimistic Locking by Default**: Built-in 409 conflict detection for concurrent edits. No more silent data loss caused by concurrent submissions.
-* **Bulletproof Authorization Context**: Server-side enforced permission gates that completely eliminate cross-account and IDOR vulnerabilities.
-* **Idempotent Data Lifecycle**: Predictable, repeatable migrations and import batches with verifiable rollback guarantees.
-* **Structured Audit Trail**: Real-time auditing for administrative operations without sensitive credential leaks.
-
-### 🚀 2. Blazing Fast & Zero SPA Bloat
-* **Blade + htmx**: Zero heavy virtual DOM overhead and no complex state serialization. Enjoy desktop-smooth 10–30ms response times.
-* **Tailwind CSS + Preline UI**: Clean, high-fidelity administrative components (modals, drawers, dropdowns, tables, metrics) with automatic DOM state re-hydration via `htmx:afterSwap`.
-* **Zero Node Fatigue in Production**: The production runtime requires zero resident Node.js processes.
-
-### 💰 3. Extreme Cost & Resource Efficiency
-* **Runs on 1 vCPU & 1GB RAM**: Compared to heavy monolithic enterprise stacks or resource-intensive architectures, AdminFlow starts in milliseconds and maintains a minimal memory footprint.
-* **FrankenPHP Native**: Built on modern Go-powered Caddy runtime with native HTTP/3, worker mode readiness, and simple single-container deployment.
-
-### 🧩 4. Monorepo & Pluggable Architecture
-* **Clean Decoupling**: Organized as local Composer packages (`packages/core`, `packages/cms`). The Core foundation knows nothing about business specifics; business logic plugs in via standard Service Providers and Contracts.
-* **Silo Isolation**: Designed for single-instance, dedicated-database delivery per client. Clean, private, and secure without the risks of shared multi-tenant leaks.
+It doesn't try to solve every problem—it focuses on **low hosting costs, easy maintenance, and pragmatic code quality**.
 
 ---
 
-## 📦 Project Structure
+## ✨ Key Features
+
+### 1. Minimal Resource Footprint
+* **Lightweight memory usage**: The base runtime consumes only tens of megabytes of RAM. It runs smoothly on budget cloud VPS instances (1 vCPU / 1GB RAM).
+* **Single-container deployment**: Powered by modern FrankenPHP. No need for complex PHP-FPM + Nginx configurations; fast startups with native HTTP/3 support.
+
+### 2. Back to Web Fundamentals
+* **Blade + htmx**: Delivers the smooth, partial-page feel of an SPA using server-rendered HTML snippets, without resident Node.js processes in production or complex client-side state managers.
+* **Preline UI components**: Bundled with Tailwind CSS to offer clean, ready-to-use modals, dropdowns, tables, drawers, and metric cards out of the box.
+
+### 3. Practical Guardrails by Default
+* **Concurrency version checks**: Built-in 409 conflict detection on save prevents accidental overwrites when multiple people edit content.
+* **Server-side authorization**: All permissions are enforced on the server; UI visibility toggles are treated as conveniences, not security barriers.
+* **Audit trail**: Key administrative actions (publishing, deleting, status changes) are recorded for traceability.
+
+### 4. Small Core & Pluggable Architecture
+* **Minimal Core**: The core package handles only authentication, user management, preset roles, dashboard scaffolding, and shared contracts.
+* **Feature plugins**: Features live in independent local packages. The first official plugin is a CMS for Markdown writing, media storage, and comments. Additional modules (payment, custom business tools) plug in cleanly.
+* **Single-instance isolation**: Built for dedicated per-client instances and independent databases, making backups, updates, and customer customizations safe and clean.
+
+---
+
+## 📁 Repository Structure
 
 ```text
 adminflow/
 ├── app/                  # Host application & service assembly
 ├── packages/
-│   ├── core/             # Base admin: Auth, RBAC, Dashboard, Audit, Layout
-│   ├── cms/              # Official Reference Plugin: Markdown, Media, Comments, SEO
-│   ├── payment/          # (Roadmap) Unified payment gateway (WeChat, Alipay, Stripe)
-│   ├── course/           # (Roadmap) Knowledge monetization & course paywall
-│   └── shop/             # (Roadmap) Lightweight commerce
-├── resources/            # Global assets & Blade templates
-├── docker-compose.yml    # Laravel Sail development configuration
-└── composer.json         # Monorepo path repository configuration
+│   ├── core/             # Core package: Auth, user CRUD, roles, dashboard, audit logs
+│   ├── cms/              # Official CMS plugin: Posts, media library, comments, SEO
+│   ├── payment/          # (Planned) Unified payment module: WeChat, Alipay, Stripe
+│   └── course/           # (Planned) Content paywall & subscription plugin
+├── resources/            # Global templates and frontend assets
+├── docker-compose.yml    # Local development setup via Laravel Sail
+└── composer.json         # Monorepo path repository config
 ```
 
 ---
 
-## 🗺️ Roadmap
+## 📌 Roadmap
 
-### Phase 1: Core Foundation & CMS Plugin (Current Focus)
-- [x] Monorepo package architecture & Sail container setup.
-- [ ] Admin authentication, base user CRUD & preset role assignment UI.
+### Phase 1: Core Foundation & CMS Blog (In Progress)
+- [x] Monorepo package structure & Sail development environment.
+- [ ] Authentication, basic user CRUD, and preset role assignment UI.
 - [ ] Admin dashboard layout with Preline UI metric cards.
-- [ ] CMS Plugin: Markdown writing, local media storage, nested comments with moderation.
-- [ ] Smooth Hugo blog import & 301 redirection mapping.
-- [ ] Backup/restore drill & FrankenPHP deployment verification.
+- [ ] CMS plugin: Markdown editor, safe rendering, local media library, nested comments.
+- [ ] Hugo blog data import and 301 URL redirect support.
+- [ ] Backup/restore drill and FrankenPHP deployment verification.
 
-### Phase 2: Commercialization & Customization Tooling
-- [ ] **Web-based Visual Code Generator**: An intuitive UI to inspect MySQL tables, configure field widgets, and generate production-grade, concurrency-safe CRUD modules in minutes (targeting custom client development).
-- [ ] **AdminFlow Architecture Skill**: Structured coding prompt guidelines to guarantee 100% unified code style across AI agents.
-- [ ] **Unified Payment Gateway**: Multi-driver payment module supporting domestic (WeChat/Alipay via `yansongda/pay`) and international payments (Stripe).
+### Phase 2: Tooling & Extensions
+- [ ] **Visual Code Generator**: An intuitive Web UI to inspect MySQL tables, configure form inputs, and generate clean CRUD code blocks for fast custom project delivery.
+- [ ] **AdminFlow Coding Skill**: Structured agent rules to ensure consistent architecture and code quality across AI prompts.
+- [ ] **Payment Gateway**: Multi-driver payment support for single-item and content paywalls.
 
 ---
 
-## 🛠️ Quick Start
+## 🚀 Quick Start
 
-*(Detailed setup instructions will be updated upon P1-01 completion)*
+*(Detailed setup steps will be updated after Phase 1 completion)*
 
 ```bash
 # Clone the repository
 git clone https://github.com/crazyhl/AdminFlow.git
 cd AdminFlow
 
-# Bootstrap dependencies via Laravel Sail
+# Start the environment via Sail
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan migrate --seed
 ```
 
 ---
 
-## 🤝 Commercial & Custom Development Services
+## 🤝 Collaboration & Custom Services
 
-AdminFlow is maintained by an experienced senior full-stack architect. We provide:
+AdminFlow is independently maintained by a senior full-stack developer. If you need:
 
-* **Custom Enterprise System Development**: Fast delivery of internal ERP, CRM, procurement, and workflow management systems based on AdminFlow.
-* **Performance & Architecture Consulting**: Refactoring AI-generated prototypes into rock-solid, production-ready enterprise applications.
-* **Private Cloud & Deployment**: End-to-end setup of cost-efficient private cloud architectures on minimal server infrastructure.
+1. **Custom Enterprise Dashboards**: Fast delivery of internal tools, CRM, and workflow platforms built on a clean, maintainable foundation.
+2. **AI Prototype Hardening**: Refactoring rough AI-generated code into robust, production-ready systems.
+3. **Budget-Friendly Private Deployments**: Running reliable business systems on cost-effective cloud infrastructure.
 
-💬 **Repositories & Links**:
+Feel free to connect:
 * **GitHub**: [https://github.com/crazyhl/AdminFlow](https://github.com/crazyhl/AdminFlow)
 * **Gitee**: [https://gitee.com/crazyhl/admin-flow](https://gitee.com/crazyhl/admin-flow)
 
@@ -120,4 +122,4 @@ AdminFlow is maintained by an experienced senior full-stack architect. We provid
 
 ## 📄 License
 
-The AdminFlow core is open-sourced software licensed under the [MIT license](LICENSE).
+AdminFlow is open-sourced software licensed under the [MIT License](LICENSE).
