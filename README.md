@@ -92,17 +92,34 @@ adminflow/
 
 ## 🚀 Quick Start
 
-*(Detailed setup steps will be updated after Phase 1 completion)*
+Local development is fully containerized with **Docker + Laravel Sail**. No local PHP, MySQL, or Node.js installations are required on your host machine.
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/crazyhl/AdminFlow.git
 cd AdminFlow
 
-# Start the environment via Sail
+# 2. Copy the environment configuration
+cp .env.example .env
+
+# 3. Bootstrap Composer dependencies via a temporary Docker container
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php84-composer:latest \
+    composer install --ignore-platform-reqs
+
+# 4. Start Sail containers (PHP 8.4 + MySQL 8.4)
 ./vendor/bin/sail up -d
+
+# 5. Generate app key and run migrations
+./vendor/bin/sail artisan key:generate
 ./vendor/bin/sail artisan migrate --seed
 ```
+
+* **Stop environment**: `./vendor/bin/sail stop` (preserves database data)
+* **Resume environment**: `./vendor/bin/sail up -d`
 
 ---
 

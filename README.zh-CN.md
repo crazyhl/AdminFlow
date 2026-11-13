@@ -92,17 +92,34 @@ adminflow/
 
 ## 🚀 快速开始
 
-*(待 P1 阶段完成后更新具体的依赖安装与首次引导流程)*
+本项目本地开发统一基于 **Docker + Laravel Sail**，宿主机无需安装任何 PHP、MySQL 或 Node.js 环境。
 
 ```bash
-# 克隆代码仓库
+# 1. 克隆代码仓库
 git clone https://gitee.com/crazyhl/admin-flow.git
 cd admin-flow
 
-# 本地通过 Sail 启动
+# 2. 准备配置文件
+cp .env.example .env
+
+# 3. 首次引导依赖（无需宿主机 PHP，通过临时 Docker 容器安装 Composer 依赖）
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php84-composer:latest \
+    composer install --ignore-platform-reqs
+
+# 4. 启动本地容器（PHP 8.4 + MySQL 8.4）
 ./vendor/bin/sail up -d
+
+# 5. 生成密钥并运行数据库迁移
+./vendor/bin/sail artisan key:generate
 ./vendor/bin/sail artisan migrate --seed
 ```
+
+* **日常停止服务**：`./vendor/bin/sail stop`（保留数据库持久化数据）
+* **日常重新启动**：`./vendor/bin/sail up -d`
 
 ---
 
