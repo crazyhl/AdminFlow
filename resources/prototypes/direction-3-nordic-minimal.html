@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-[#fbfbfa]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方向三：Nordic Minimal 北欧暖调效率 · AdminFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif; }
+        .font-serif-title { font-family: "Georgia", "Cambria", serif; }
+    </style>
+</head>
+<body class="h-full flex text-stone-800 antialiased selection:bg-stone-200">
+
+    <!-- 侧边栏：北欧暖调极简 (Stone 50 无缝沉浸) -->
+    <aside class="w-64 bg-[#f7f6f3] border-r border-stone-200/70 flex flex-col justify-between shrink-0">
+        <div>
+            <!-- 工作空间切换 -->
+            <div class="h-14 flex items-center justify-between px-4 border-b border-stone-200/50">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-6 h-6 rounded-md bg-stone-800 text-stone-100 flex items-center justify-center font-serif-title text-xs">
+                        AF
+                    </div>
+                    <span class="text-xs font-semibold tracking-tight text-stone-900">AdminFlow Space</span>
+                </div>
+                <span class="text-[10px] bg-stone-200/60 text-stone-600 px-1.5 py-0.5 rounded font-mono">Solo</span>
+            </div>
+
+            <!-- 极简页面列表 (Notion / Craft 风格树状层次) -->
+            <nav class="p-3 space-y-5 text-xs">
+                <div>
+                    <div class="text-[11px] font-medium text-stone-400 px-2 mb-1">控制与洞察</div>
+                    <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium bg-stone-200/60 text-stone-900">
+                        <i class="bi bi-compass text-stone-700"></i>
+                        <span>全局仪表板</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-stone-600 hover:bg-stone-200/40 mt-0.5 transition-colors">
+                        <i class="bi bi-clock-history text-stone-400"></i>
+                        <span>审计与安全流</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-stone-600 hover:bg-stone-200/40 mt-0.5 transition-colors">
+                        <i class="bi bi-person-gear text-stone-400"></i>
+                        <span>成员与角色</span>
+                    </a>
+                </div>
+
+                <div>
+                    <div class="text-[11px] font-medium text-stone-400 px-2 mb-1">创作工坊 (CMS)</div>
+                    <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-stone-600 hover:bg-stone-200/40 transition-colors">
+                        <i class="bi bi-pen text-stone-400"></i>
+                        <span>Markdown 文章库</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md font-medium text-stone-600 hover:bg-stone-200/40 mt-0.5 transition-colors">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-chat-quote text-stone-400"></i>
+                            <span>访客评论互动</span>
+                        </div>
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-stone-600 hover:bg-stone-200/40 mt-0.5 transition-colors">
+                        <i class="bi bi-image text-stone-400"></i>
+                        <span>图床媒体资源</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 rounded-md font-medium text-stone-600 hover:bg-stone-200/40 mt-0.5 transition-colors">
+                        <i class="bi bi-box-arrow-in-down-right text-stone-400"></i>
+                        <span>Hugo 数据平滑导入</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- 底部个人身份 -->
+        <div class="p-3 border-t border-stone-200/50 flex items-center justify-between">
+            <div class="flex items-center gap-2 overflow-hidden">
+                <div class="w-7 h-7 rounded-full bg-stone-300 text-stone-700 flex items-center justify-center font-bold text-xs shrink-0">
+                    A
+                </div>
+                <div class="truncate text-xs">
+                    <span class="font-medium text-stone-900">Administrator</span>
+                </div>
+            </div>
+            <button class="text-stone-400 hover:text-stone-700 p-1 rounded transition-colors" title="注销">
+                <i class="bi bi-door-closed text-sm"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- 主工作区：白纸暖调阅读质感 -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <!-- 顶栏：极度无痕融入 -->
+        <header class="h-14 bg-white/70 backdrop-blur px-8 flex items-center justify-between border-b border-stone-200/50 sticky top-0 z-10">
+            <div class="flex items-center gap-2 text-xs text-stone-500">
+                <span class="text-stone-400">AdminFlow</span>
+                <span class="text-stone-300">/</span>
+                <span class="font-medium text-stone-800">仪表盘</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-[11px] text-stone-500 font-mono">2026-11-13</span>
+                <div class="h-3 w-px bg-stone-200"></div>
+                <button class="px-2.5 py-1 text-xs bg-stone-900 text-white rounded-md hover:bg-stone-800 font-medium transition-colors">
+                    + 写新文章
+                </button>
+            </div>
+        </header>
+
+        <!-- 内容主体 -->
+        <main class="p-8 max-w-5xl space-y-8">
+            <!-- 问候与核心心智 -->
+            <div class="space-y-1">
+                <h1 class="text-2xl font-serif-title font-semibold text-stone-900 tracking-tight">午后好，系统运行平稳。</h1>
+                <p class="text-xs text-stone-500">你的个人单站小核心正在持续护航，所有写操作遵循版本冲突检测（409 防并发覆盖）。</p>
+            </div>
+
+            <!-- 扁平数字指标 (无厚重卡片包裹，呼吸感纯粹排印) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 py-4 border-y border-stone-200/60">
+                <div>
+                    <div class="text-xs text-stone-400">已沉淀文章</div>
+                    <div class="text-3xl font-serif-title font-bold text-stone-900 mt-1">42</div>
+                    <div class="text-[11px] text-emerald-700 mt-1 flex items-center gap-1 font-mono">
+                        <i class="bi bi-check2"></i> 38 篇已发布
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-stone-400">待审核评论</div>
+                    <div class="text-3xl font-serif-title font-bold text-amber-700 mt-1">7</div>
+                    <div class="text-[11px] text-stone-400 mt-1">
+                        待确认无 XSS / 垃圾广告
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-stone-400">媒体库容量</div>
+                    <div class="text-3xl font-serif-title font-bold text-stone-900 mt-1">1.2 <span class="text-sm font-sans font-normal text-stone-400">GB</span></div>
+                    <div class="text-[11px] text-stone-400 mt-1">
+                        186 张高清图床
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-stone-400">审计活动</div>
+                    <div class="text-3xl font-serif-title font-bold text-stone-900 mt-1">128</div>
+                    <div class="text-[11px] text-stone-400 mt-1">
+                        全量脱敏记录
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下方两栏：内容写作进展 vs 实例安全状况 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 左侧：待办与写作流 -->
+                <div class="md:col-span-2 space-y-4">
+                    <div class="text-xs font-semibold text-stone-900 tracking-wide uppercase">待处理创作与互动</div>
+                    <div class="bg-white rounded-xl border border-stone-200/70 divide-y divide-stone-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                        <div class="p-4 flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-medium text-stone-900">Hugo 历史文章批量迁移映射</div>
+                                <div class="text-[11px] text-stone-500 mt-0.5">已导入 35 篇 Markdown 原文，尚需验证 301 重定向映射表。</div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] bg-stone-100 text-stone-600 shrink-0">待验证</span>
+                        </div>
+
+                        <div class="p-4 flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-medium text-stone-900">新访客在《架构设计反思》留下了 3 条嵌套评论</div>
+                                <div class="text-[11px] text-stone-500 mt-0.5">防注入预处理已完成，等待站长一键审核公开。</div>
+                            </div>
+                            <button class="px-2.5 py-1 rounded text-[11px] bg-amber-50 text-amber-800 border border-amber-200 shrink-0 font-medium">去审核</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：极简系统底座信息 -->
+                <div class="space-y-4">
+                    <div class="text-xs font-semibold text-stone-900 tracking-wide uppercase">底座技术状态</div>
+                    <div class="bg-[#f7f6f3] p-4 rounded-xl border border-stone-200/70 space-y-3 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-stone-500">PHP 运行版本</span>
+                            <span class="font-mono font-medium text-stone-800">8.4.27</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-stone-500">数据库驱动</span>
+                            <span class="font-mono font-medium text-stone-800">MySQL 8.4</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-stone-500">会话与限流保护</span>
+                            <span class="text-emerald-700 font-medium">数据库隔离表</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-stone-500">前端组件规范</span>
+                            <span class="font-medium text-stone-800">Tailwind + Preline UI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

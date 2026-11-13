@@ -13,6 +13,10 @@ Route::prefix('admin')
 
         // 受保护的后台路由
         Route::middleware(['admin.auth'])->group(function (): void {
-            Route::get('/', fn() => response('AdminFlow Dashboard Placeholder', 200))->name('admin.dashboard');
+            Route::get('/', function () {
+                $auditLogs = \AdminFlow\Core\Models\AuditLog::query()->with('user')->latest('id')->take(5)->get();
+
+                return view('adminflow-core::dashboard', compact('auditLogs'));
+            })->name('admin.dashboard');
         });
     });

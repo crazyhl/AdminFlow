@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminFlow · 后台视觉三方向选型面板 (huashu-design)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="h-full flex flex-col font-sans antialiased">
+
+    <!-- 顶部导览与切换栏 -->
+    <header class="h-16 bg-slate-950 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-sm">
+                AF
+            </div>
+            <div>
+                <div class="text-sm font-bold text-white">AdminFlow · 仪表盘与后台布局视觉选型（三方向门）</div>
+                <div class="text-[11px] text-slate-400">遵循 huashu-design 约束：风格选定即闭环，后续生产级落地将统一此规范</div>
+            </div>
+        </div>
+
+        <!-- 三方向切换 Tabs -->
+        <div class="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <button onclick="setDirection(1)" id="tab-1" class="px-4 py-1.5 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow">
+                方向一：Craft Clean（现代工匠）
+            </button>
+            <button onclick="setDirection(2)" id="tab-2" class="px-4 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white">
+                方向二：Enterprise Slate（经典企业）
+            </button>
+            <button onclick="setDirection(3)" id="tab-3" class="px-4 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white">
+                方向三：Nordic Minimal（北欧暖调）
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a id="open-standalone" href="direction-1-craft-clean.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors flex items-center gap-1.5 border border-slate-700">
+                <span>新窗口全屏预览</span>
+                <i class="bi bi-box-arrow-up-right text-[11px]"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- 说明条 -->
+    <div id="desc-bar" class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between text-xs text-slate-300">
+        <div id="desc-text" class="flex items-center gap-3">
+            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium">方向一 特点</span>
+            <span>Linear / Raycast 极客工匠风格 · 浅冷灰微反差底色 · 单像素细腻线条分割 · 高信息密度与工程师专属敏捷感</span>
+        </div>
+        <div class="text-[11px] text-slate-500 font-mono">
+            按 1/2/3 键可快速键盘切换
+        </div>
+    </div>
+
+    <!-- 交互预览视口 -->
+    <div class="flex-1 bg-slate-950 relative">
+        <iframe id="preview-frame" src="direction-1-craft-clean.html" class="w-full h-full border-none"></iframe>
+    </div>
+
+    <script>
+        const directions = {
+            1: {
+                url: 'direction-1-craft-clean.html',
+                badge: '方向一 特点',
+                badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+                btnClass: 'bg-indigo-600 text-white shadow',
+                desc: 'Linear / Raycast 极客工匠风格 · 浅冷灰微反差底色 · 单像素细腻线条分割 · 高信息密度与工程师专属敏捷感'
+            },
+            2: {
+                url: 'direction-2-enterprise-slate.html',
+                badge: '方向二 特点',
+                badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                btnClass: 'bg-blue-600 text-white shadow',
+                desc: 'Tailwind UI Pro / Vercel 企业级石板风格 · 深色经典专业侧边栏 · 丰富卡片层级与阴影 · 适合国内客户/甲方商业交付'
+            },
+            3: {
+                url: 'direction-3-nordic-minimal.html',
+                badge: '方向三 特点',
+                badgeClass: 'bg-stone-500/20 text-stone-300 border-stone-500/30',
+                btnClass: 'bg-stone-700 text-white shadow',
+                desc: 'Notion / Craft CMS 北欧暖调效率风格 · 柔和米白纸感底色 · 扁平透气排印与优雅衬线标题 · 适合独立创作者与技术博客'
+            }
+        };
+
+        function setDirection(id) {
+            const d = directions[id];
+            document.getElementById('preview-frame').src = d.url;
+            document.getElementById('open-standalone').href = d.url;
+            
+            // 更新按钮状态
+            [1, 2, 3].forEach(i => {
+                const btn = document.getElementById('tab-' + i);
+                if (i === id) {
+                    btn.className = `px-4 py-1.5 rounded-lg font-medium transition-all ${d.btnClass}`;
+                } else {
+                    btn.className = 'px-4 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white';
+                }
+            });
+
+            // 更新说明文案
+            document.getElementById('desc-text').innerHTML = `
+                <span class="px-2 py-0.5 rounded ${d.badgeClass} border font-medium">${d.badge}</span>
+                <span>${d.desc}</span>
+            `;
+        }
+
+        // 键盘快捷键监听
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '1') setDirection(1);
+            if (e.key === '2') setDirection(2);
+            if (e.key === '3') setDirection(3);
+        });
+    </script>
+</body>
+</html>

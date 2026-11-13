@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方向一：Craft Clean 现代工匠极简 · AdminFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif; }
+    </style>
+</head>
+<body class="h-full flex text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- 侧边栏：紧凑工匠风 (64px / 240px 可伸缩感) -->
+    <aside class="w-60 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0">
+        <div>
+            <!-- Logo 区 -->
+            <div class="h-14 flex items-center gap-3 px-5 border-b border-slate-100">
+                <div class="w-7 h-7 rounded-md bg-indigo-600 flex items-center justify-center text-white shadow-sm font-semibold text-sm">
+                    AF
+                </div>
+                <div>
+                    <div class="text-sm font-bold tracking-tight text-slate-900 leading-none">AdminFlow</div>
+                    <div class="text-[10px] text-slate-400 font-mono mt-0.5">v1.0.0 · Core</div>
+                </div>
+            </div>
+
+            <!-- 导航分组 -->
+            <nav class="p-3 space-y-6">
+                <div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 mb-1.5">系统总览</div>
+                    <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-slate-100 text-slate-900">
+                        <i class="bi bi-grid-1x2 text-indigo-600 text-sm"></i>
+                        <span>控制台仪表盘</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 mt-0.5">
+                        <i class="bi bi-journal-text text-slate-400 text-sm"></i>
+                        <span>操作审计日志</span>
+                    </a>
+                </div>
+
+                <div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 mb-1.5">权限与成员</div>
+                    <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                        <div class="flex items-center gap-2.5">
+                            <i class="bi bi-people text-slate-400 text-sm"></i>
+                            <span>管理员列表</span>
+                        </div>
+                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">3</span>
+                    </a>
+                </div>
+
+                <div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 mb-1.5">内容管理 (CMS)</div>
+                    <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                        <i class="bi bi-file-earmark-richtext text-slate-400 text-sm"></i>
+                        <span>文章写作与发布</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 mt-0.5">
+                        <i class="bi bi-chat-square-dots text-slate-400 text-sm"></i>
+                        <span>评论审核树</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 mt-0.5">
+                        <i class="bi bi-images text-slate-400 text-sm"></i>
+                        <span>内置图床媒体库</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- 底部当前用户与快捷注销 -->
+        <div class="p-3 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+                <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-medium shrink-0">
+                    AD
+                </div>
+                <div class="truncate">
+                    <div class="text-xs font-semibold text-slate-900 truncate">超级管理员</div>
+                    <div class="text-[10px] text-slate-400 truncate">admin@test.com</div>
+                </div>
+            </div>
+            <button class="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors" title="安全退出">
+                <i class="bi bi-box-arrow-right text-sm"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- 主工作区 -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <!-- 顶栏：轻量面包屑 + Command+K 快捷搜索 -->
+        <header class="h-14 bg-white/80 backdrop-blur border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-10">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+                <span>后台基座</span>
+                <span class="text-slate-300">/</span>
+                <span class="font-medium text-slate-900">控制台仪表盘</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="relative w-64">
+                    <i class="bi bi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" placeholder="全局搜索 (⌘K)" class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono">
+                </div>
+                <button class="h-8 w-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs">
+                    <i class="bi bi-translate"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 内容主体 -->
+        <main class="p-6 space-y-6 max-w-7xl">
+            <!-- 欢迎条与系统状态 -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2 border-b border-slate-200">
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900">系统运行概览</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">AdminFlow 独立单体实例 · 数据库驱动会话与限流保护正常生效中</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        PHP 8.4 · MySQL 8.4 Healthy
+                    </span>
+                </div>
+            </div>
+
+            <!-- 核心数据指标卡片 (4 列紧凑网格) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-4 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-all">
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span>文章总数</span>
+                        <span class="text-emerald-600 font-mono font-medium">+12%</span>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-slate-900">42</div>
+                    <div class="mt-2 text-[11px] text-slate-400">已公开发布 38 篇 · 草稿 4 篇</div>
+                </div>
+
+                <div class="p-4 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-all">
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span>待审评论</span>
+                        <span class="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-mono border border-amber-200">需处理</span>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-amber-600">7</div>
+                    <div class="mt-2 text-[11px] text-slate-400">嵌套评论树待审核防注入</div>
+                </div>
+
+                <div class="p-4 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-all">
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span>媒体库资源</span>
+                        <span class="text-slate-400 font-mono">1.2 GB</span>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-slate-900">186</div>
+                    <div class="mt-2 text-[11px] text-slate-400">本地内置图床 · WebP 自动压缩</div>
+                </div>
+
+                <div class="p-4 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-all">
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span>今日审计日志</span>
+                        <span class="text-indigo-600 font-mono">安全</span>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-slate-900">128</div>
+                    <div class="mt-2 text-[11px] text-slate-400">含 1 次登录拦截 · 敏感字段脱敏</div>
+                </div>
+            </div>
+
+            <!-- 主副两栏：最近审计日志 vs 快捷运维 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 左侧 2 栏：操作审计实时流 -->
+                <div class="lg:col-span-2 bg-white border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <div class="text-xs font-semibold text-slate-900">最新操作审计日志</div>
+                        <a href="#" class="text-[11px] text-indigo-600 hover:text-indigo-700 font-medium">查看全部 →</a>
+                    </div>
+                    <div class="divide-y divide-slate-100 text-xs">
+                        <div class="px-4 py-3 flex items-center justify-between hover:bg-slate-50/50">
+                            <div class="flex items-center gap-3">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span class="font-mono text-slate-500">auth.login_success</span>
+                                <span class="text-slate-900 font-medium">超级管理员成功登录</span>
+                            </div>
+                            <div class="text-slate-400 font-mono text-[11px]">127.0.0.1 · 刚刚</div>
+                        </div>
+                        <div class="px-4 py-3 flex items-center justify-between hover:bg-slate-50/50">
+                            <div class="flex items-center gap-3">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span class="font-mono text-slate-500">user.toggle_status</span>
+                                <span class="text-slate-900 font-medium">停用用户 [editor@test.com]</span>
+                            </div>
+                            <div class="text-slate-400 font-mono text-[11px]">127.0.0.1 · 12 分钟前</div>
+                        </div>
+                        <div class="px-4 py-3 flex items-center justify-between hover:bg-slate-50/50">
+                            <div class="flex items-center gap-3">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <span class="font-mono text-slate-500">auth.admin_init</span>
+                                <span class="text-slate-900 font-medium">双语初始化超级管理员账号</span>
+                            </div>
+                            <div class="text-slate-400 font-mono text-[11px]">CLI · 今天 14:10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧 1 栏：快捷动作与实例状态 -->
+                <div class="space-y-4">
+                    <div class="bg-white border border-slate-200 rounded-lg p-4">
+                        <div class="text-xs font-semibold text-slate-900 mb-3">快捷运维</div>
+                        <div class="space-y-2">
+                            <button class="w-full flex items-center justify-between px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-md text-xs font-medium text-slate-700 transition-colors">
+                                <span class="flex items-center gap-2"><i class="bi bi-pencil-square text-indigo-600"></i>起草新文章</span>
+                                <i class="bi bi-chevron-right text-slate-400 text-[10px]"></i>
+                            </button>
+                            <button class="w-full flex items-center justify-between px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-md text-xs font-medium text-slate-700 transition-colors">
+                                <span class="flex items-center gap-2"><i class="bi bi-person-plus text-indigo-600"></i>创建协作者账号</span>
+                                <i class="bi bi-chevron-right text-slate-400 text-[10px]"></i>
+                            </button>
+                            <button class="w-full flex items-center justify-between px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-md text-xs font-medium text-slate-700 transition-colors">
+                                <span class="flex items-center gap-2"><i class="bi bi-cloud-arrow-up text-indigo-600"></i>导入 Hugo Markdown</span>
+                                <i class="bi bi-chevron-right text-slate-400 text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 text-white rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-xs font-medium text-slate-300">架构约束与安全</div>
+                            <i class="bi bi-shield-check text-emerald-400 text-sm"></i>
+                        </div>
+                        <div class="text-[11px] text-slate-400 leading-relaxed">
+                            单实例独立数据库交付 · 严格防越权 IDOR · 敏感密码参数已注入 <code class="text-indigo-300 font-mono">#[SensitiveParameter]</code> 防泄露。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
