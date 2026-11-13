@@ -6,6 +6,9 @@ use AdminFlow\Core\Enums\Role;
 use AdminFlow\Core\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
 
 class UserService
@@ -38,15 +41,16 @@ class UserService
     {
         $query = User::query();
 
-        if (!empty($filters['search'])) {
-            $search = trim((string) $filters['search']);
+        $search = trim((string) ($filters['search'] ?? ''));
+        if ($search !== '') {
             $query->where(static function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        if (!empty($filters['role'])) {
-            $query->where('role', $filters['role']);
+        $role = (string) ($filters['role'] ?? '');
+        if ($role !== '') {
+            $query->where('role', $role);
         }
 
         if (isset($filters['is_active']) && $filters['is_active'] !== '') {
@@ -88,7 +92,8 @@ class UserService
         $isAdmin = $role === Role::SUPER_ADMIN;
         $isActive = $data['is_active'] ?? true;
 
-        $user = User::create([
+        /** @var User $user */
+        $user = User::query()->create([
             'name' => trim($data['name'] ?? ''),
             'email' => $email,
             'password' => Hash::make($password),
@@ -217,20 +222,29 @@ class UserService
     }
 
     /**
-     * 校验密码强度
+     * 校验密码强度（采用 Laravel 官方 Password 校验器）
      */
     protected function assertPasswordStrength(#[\SensitiveParameter] string $password): void
     {
-        if (strlen($password) < 8) {
-            throw new InvalidArgumentException('密码长度至少为 8 位');
-        }
+        $validator = Validator::make(['password' => $password], [
+            'password' => [
+                'required',
+                'string',
+                Password::min(8)->letters()->numbers(),
+                Rule::notIn($this->weakPasswords),
+            ],
+        ]);
 
-        if (!preg_match('/[A-Za-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        if ($validator->fails()) {
+            if (strlen($password) < 8) {
+                throw new InvalidArgumentException('密码长度至少为 8 位');
+            }
+
+            if (in_array(strtolower($password), $this->weakPasswords, true)) {
+                throw new InvalidArgumentException('此密码为常见弱密码，请选用更安全的组合');
+            }
+
             throw new InvalidArgumentException('密码必须同时包含英文字母与数字');
-        }
-
-        if (in_array(strtolower($password), $this->weakPasswords, true)) {
-            throw new InvalidArgumentException('此密码为常见弱密码，请选用更安全的组合');
         }
     }
 }

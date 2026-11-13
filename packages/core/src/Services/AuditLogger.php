@@ -3,6 +3,7 @@
 namespace AdminFlow\Core\Services;
 
 use AdminFlow\Core\Models\AuditLog;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +36,7 @@ class AuditLogger
      * 记录一条审计日志
      *
      * @param string $action 操作动词（如 'auth.login', 'auth.admin_init', 'user.update'）
-     * @param Model|null $target 操作的目标实体
+     * @param Model|Authenticatable|null $target 操作的目标实体
      * @param array<string, mixed> $details 操作携带的业务明细（自动脱敏）
      * @param int|null $userId 操作人 ID（未指定则自动从当前会话提取）
      * @param string|null $ip 客户端 IP
@@ -43,7 +44,7 @@ class AuditLogger
      */
     public function log(
         string $action,
-        ?Model $target = null,
+        Model|Authenticatable|null $target = null,
         array $details = [],
         ?int $userId = null,
         ?string $ip = null,
@@ -59,8 +60,11 @@ class AuditLogger
             $userAgent = App::runningInConsole() ? 'CLI' : request()?->userAgent();
         }
 
-        $targetType = $target ? $target->getMorphClass() : null;
-        $targetId = $target ? (string) $target->getKey() : null;
+        [$targetType, $targetId] = match (true) {
+            $target instanceof Model => [$target->getMorphClass(), (string) $target->getKey()],
+            $target instanceof Authenticatable => [$target::class, (string) $target->getAuthIdentifier()],
+            default => [null, null],
+        };
 
         return AuditLog::create([
             'user_id' => $resolvedUserId,
@@ -78,7 +82,7 @@ class AuditLogger
      * 便捷静态代理调用
      *
      * @param string $action
-     * @param Model|null $target
+     * @param Model|Authenticatable|null $target
      * @param array<string, mixed> $details
      * @param int|null $userId
      * @param string|null $ip
@@ -86,7 +90,7 @@ class AuditLogger
      */
     public static function record(
         string $action,
-        ?Model $target = null,
+        Model|Authenticatable|null $target = null,
         array $details = [],
         ?int $userId = null,
         ?string $ip = null,
@@ -118,9 +122,10 @@ class AuditLogger
 
             if (is_array($value)) {
                 $sanitized[$key] = $this->maskSensitiveData($value);
-            } else {
-                $sanitized[$key] = $value;
+                continue;
             }
+
+            $sanitized[$key] = $value;
         }
 
         return $sanitized;

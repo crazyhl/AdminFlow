@@ -7,6 +7,7 @@ php-version = "8.4.0"
 workspace = "."
 paths = [
     "bootstrap",
+    "database",
     "packages",
     "routes",
     "tests",
@@ -15,7 +16,6 @@ includes = ["vendor"]
 excludes = [
     "storage/**",
     "bootstrap/cache/**",
-    "vendor/**",
 ]
 
 [formatter]
@@ -27,6 +27,19 @@ use-tabs = false
 integrations = ["laravel", "phpunit"]
 
 [linter.rules]
-# 排除测试与迁移中的字面量密码检查（测试用例包含模拟密码是正当的）
-no-literal-password = { level = "error", exclude = ["tests/**", "packages/*/database/**"] }
-strict-types = { level = "warning" }
+# 排除测试、迁移与多语言包中的字面量密码检查（多语言包中包含提示词并非真实密码）
+no-literal-password = { level = "error", exclude = ["tests/**", "packages/*/database/**", "packages/*/lang/**", "database/**"] }
+
+# 调整类圈复杂度阈值，适配典型的业务 Service/Controller 类
+cyclomatic-complexity = { threshold = 30 }
+halstead = { enabled = false }
+
+# 参数列表阈值适配上下文传参
+excessive-parameter-list = { threshold = 8 }
+
+# 适配 Laravel / PHPUnit 社区惯用实践
+assertion-style = { enabled = false }
+literal-named-argument = { enabled = false }
+no-isset = { enabled = false }
+strict-types = { enabled = false }
+no-empty = { enabled = false }

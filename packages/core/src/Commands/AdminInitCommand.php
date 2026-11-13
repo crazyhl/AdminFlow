@@ -9,6 +9,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class AdminInitCommand extends Command
 {
@@ -63,7 +65,7 @@ class AdminInitCommand extends Command
 
         // 1. 输入姓名
         $name = $this->ask($this->t('prompt_name'), $this->t('default_name'));
-        if (empty(trim($name))) {
+        if (trim((string) $name) === '') {
             $this->error($this->t('err_name_required'));
 
             return self::FAILURE;
@@ -90,18 +92,29 @@ class AdminInitCommand extends Command
         // 3. 输入密码（隐式输入）
         $password = $this->secret($this->t('prompt_password'));
 
-        if (!is_string($password) || strlen($password) < 8) {
+        if (!is_string($password) || $password === '') {
             $this->error($this->t('err_password_too_short'));
 
             return self::FAILURE;
         }
 
-        // 强密码校验：需包含字母与数字，且非预设弱密码
-        if (
-            !preg_match('/[A-Za-z]/', $password)
-            || !preg_match('/[0-9]/', $password)
-            || in_array(strtolower($password), $this->weakPasswords, true)
-        ) {
+        // 使用 Laravel 官方 Password 验证规则
+        $passwordValidator = Validator::make(['password' => $password], [
+            'password' => [
+                'required',
+                'string',
+                Password::min(8)->letters()->numbers(),
+                Rule::notIn($this->weakPasswords),
+            ],
+        ]);
+
+        if ($passwordValidator->fails()) {
+            if (strlen($password) < 8) {
+                $this->error($this->t('err_password_too_short'));
+
+                return self::FAILURE;
+            }
+
             $this->error($this->t('err_password_weak'));
 
             return self::FAILURE;
@@ -109,16 +122,17 @@ class AdminInitCommand extends Command
 
         // 4. 确认密码
         $confirmPassword = $this->secret($this->t('prompt_password_confirm'));
-        if ($password !== $confirmPassword) {
+        if (!hash_equals($password, (string) $confirmPassword)) {
             $this->error($this->t('err_password_mismatch'));
 
             return self::FAILURE;
         }
 
         // 5. 创建超级管理员
-        $admin = User::create([
-            'name' => trim($name),
-            'email' => trim($email),
+        /** @var User $admin */
+        $admin = User::query()->create([
+            'name' => trim((string) $name),
+            'email' => trim((string) $email),
             'password' => Hash::make($password),
             'is_admin' => true,
             'is_active' => true,
@@ -132,7 +146,7 @@ class AdminInitCommand extends Command
             details: [
                 'name' => $admin->name,
                 'email' => $admin->email,
-                'locale' => $locale ?: config('app.locale'),
+                'locale' => $locale ?? config('app.locale'),
             ],
             userId: $admin->id,
         );

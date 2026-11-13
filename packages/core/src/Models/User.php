@@ -3,24 +3,41 @@
 namespace AdminFlow\Core\Models;
 
 use AdminFlow\Core\Enums\Role;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
+/**
+ * AdminFlow 核心用户模型
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property bool $is_admin
+ * @property bool $is_active
+ * @property Role $role
+ * @property string|null $remember_token
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, AuditLog> $auditLogs
+ */
 class User extends Authenticatable
 {
-    use HasFactory;
     use Notifiable;
 
     /**
      * 指定核心用户表名
+     *
+     * @var string
      */
     protected $table = 'adminflow_users';
 
     /**
      * 可批量赋值的属性
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -34,7 +51,7 @@ class User extends Authenticatable
     /**
      * 序列化时隐藏的敏感属性
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',

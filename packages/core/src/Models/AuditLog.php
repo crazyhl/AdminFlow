@@ -2,16 +2,30 @@
 
 namespace AdminFlow\Core\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * 操作审计日志模型
+ *
+ * @property int $id
+ * @property int|null $user_id
+ * @property string $action
+ * @property string|null $target_type
+ * @property string|null $target_id
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property array<string, mixed>|null $details
+ * @property Carbon|null $created_at
+ * @property-read User|null $user
+ */
 class AuditLog extends Model
 {
-    use HasFactory;
-
     /**
      * 表名
+     *
+     * @var string
      */
     protected $table = 'adminflow_audit_logs';
 
@@ -23,7 +37,7 @@ class AuditLog extends Model
     /**
      * 可批量赋值属性
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'user_id',
