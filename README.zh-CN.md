@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php" alt="PHP Version">
+  <img src="https://img.shields.io/badge/PHP-8.4%2B-777BB4?style=flat-square&logo=php" alt="PHP Version">
   <img src="https://img.shields.io/badge/Laravel-11.x%2B-FF2D20?style=flat-square&logo=laravel" alt="Laravel Version">
   <img src="https://img.shields.io/badge/UI-Tailwind%20%2B%20Preline-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind UI">
   <img src="https://img.shields.io/badge/%E4%BA%A4%E4%BA%92-htmx-336699?style=flat-square" alt="htmx">
