@@ -4,8 +4,9 @@
 *.swp
 .vscode/
 
-# 内部 Agent 设定
+# 内部 Agent 设定与私有规划文档
 AGENTS.md
+/plans/
 
 # 第三方设计技能：体积约 42 MB，按 AGENTS.md 记录的方式重装，不提交
 .agents/skills/huashu-design/
