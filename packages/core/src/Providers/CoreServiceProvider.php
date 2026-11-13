@@ -19,6 +19,7 @@ class CoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 核心组件与路由引导
+        // 自动加载核心数据表迁移
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
     }
 }
