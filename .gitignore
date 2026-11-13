@@ -7,12 +7,7 @@
 # 内部 Agent 设定与私有规划文档
 AGENTS.md
 /plans/
-
-# 第三方设计技能：体积约 42 MB，按 AGENTS.md 记录的方式重装，不提交
-.agents/skills/huashu-design/
-
-# 提示词与临时技能
-.agents/skills/*/.git/
+.agents/
 
 # Laravel 应用（宿主工程建立后生效）
 /vendor/
