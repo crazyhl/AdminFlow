@@ -96,8 +96,8 @@ adminflow/
 
 ```bash
 # 克隆代码仓库
-git clone https://gitee.com/<your-username>/adminflow.git
-cd adminflow
+git clone https://gitee.com/crazyhl/admin-flow.git
+cd admin-flow
 
 # 通过 Laravel Sail 一键启动本地环境
 ./vendor/bin/sail up -d
@@ -114,11 +114,9 @@ AdminFlow 由资深一线架构师独立主理，专注于为中小企业与个�
 2. **AI 原型落地与架构重构**：帮你修复纯 AI 开发遗留的并发、性能、安全漏洞与数据库设计缺陷，救活烂尾工程。
 3. **私有化低成本部署咨询**：以极低的服务器成本（1核2G甚至1核1G）实现生产级高可用部署。
 
-💬 **欢迎联系交流**：
-* **微信**：*(请在此处填写你的微信号 / 交流群二维码)*
-* **邮箱**：*(请在此处填写你的联系邮箱)*
-* **Gitee 仓库**：[https://gitee.com](https://gitee.com)
-* **GitHub 仓库**：[https://github.com](https://github.com)
+💬 **项目仓库与社区**：
+* **Gitee 仓库**：[https://gitee.com/crazyhl/admin-flow](https://gitee.com/crazyhl/admin-flow)
+* **GitHub 仓库**：[https://github.com/crazyhl/AdminFlow](https://github.com/crazyhl/AdminFlow)
 
 ---
 

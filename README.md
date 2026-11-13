@@ -94,8 +94,8 @@ adminflow/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/adminflow.git
-cd adminflow
+git clone https://github.com/crazyhl/AdminFlow.git
+cd AdminFlow
 
 # Bootstrap dependencies via Laravel Sail
 ./vendor/bin/sail up -d
@@ -110,13 +110,11 @@ AdminFlow is maintained by an experienced senior full-stack architect. We provid
 
 * **Custom Enterprise System Development**: Fast delivery of internal ERP, CRM, procurement, and workflow management systems based on AdminFlow.
 * **Performance & Architecture Consulting**: Refactoring AI-generated prototypes into rock-solid, production-ready enterprise applications.
-* **Private SaaS & Deployment**: End-to-end setup of cost-efficient private cloud architectures on minimal server infrastructure.
+* **Private Cloud & Deployment**: End-to-end setup of cost-efficient private cloud architectures on minimal server infrastructure.
 
-💬 **Contact Me**:
-* **Email**: *(Add your email here)*
-* **WeChat**: *(Add your WeChat ID / QR Code here)*
-* **Gitee**: [https://gitee.com](https://gitee.com)
-* **GitHub**: [https://github.com](https://github.com)
+💬 **Repositories & Links**:
+* **GitHub**: [https://github.com/crazyhl/AdminFlow](https://github.com/crazyhl/AdminFlow)
+* **Gitee**: [https://gitee.com/crazyhl/admin-flow](https://gitee.com/crazyhl/admin-flow)
 
 ---
 
