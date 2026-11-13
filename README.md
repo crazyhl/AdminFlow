@@ -60,7 +60,6 @@ It doesn't try to solve every problem—it focuses on **low hosting costs, easy 
 
 ```text
 adminflow/
-├── app/                  # Host application & service assembly
 ├── packages/
 │   ├── core/             # Core package: Auth, user CRUD, roles, dashboard, audit logs
 │   ├── cms/              # Official CMS plugin: Posts, media library, comments, SEO
