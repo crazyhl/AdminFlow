@@ -44,7 +44,7 @@ AdminFlow combines **decades of solid engineering expertise** with AI-assisted h
 * **Zero Node Fatigue in Production**: The production runtime requires zero resident Node.js processes.
 
 ### 💰 3. Extreme Cost & Resource Efficiency
-* **Runs on 1 vCPU & 1GB RAM**: Unlike JVM-heavy Java stacks (e.g., RuoYi) or memory-hungry microservices, AdminFlow starts in milliseconds and consumes minimal resources.
+* **Runs on 1 vCPU & 1GB RAM**: Compared to heavy monolithic enterprise stacks or resource-intensive architectures, AdminFlow starts in milliseconds and maintains a minimal memory footprint.
 * **FrankenPHP Native**: Built on modern Go-powered Caddy runtime with native HTTP/3, worker mode readiness, and simple single-container deployment.
 
 ### 🧩 4. Monorepo & Pluggable Architecture
