@@ -37,7 +37,7 @@ class AuditLogFeatureTest extends TestCase
                     'reason' => '定期维护',
                 ],
             ],
-            userId: $user->id
+            userId: $user->id,
         );
 
         $this->assertDatabaseHas('adminflow_audit_logs', [
@@ -64,17 +64,18 @@ class AuditLogFeatureTest extends TestCase
      */
     public function test_admin_init_creates_audit_log(): void
     {
-        $this->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
             ->expectsQuestion('请输入管理员姓名/昵称', '系统超管')
             ->expectsQuestion('请输入管理员邮箱地址', 'super@example.com')
             ->expectsQuestion('请输入管理员密码（至少 8 位，包含字母与数字）', 'Secr3tP@ss2026')
             ->expectsQuestion('请再次输入密码以确认', 'Secr3tP@ss2026')
             ->assertExitCode(0);
 
-        $admin = User::where('email', 'super@example.com')->first();
+        $admin = User::query()->where('email', 'super@example.com')->first();
         $this->assertNotNull($admin);
 
-        $log = AuditLog::where('action', 'auth.admin_init')->first();
+        $log = AuditLog::query()->where('action', 'auth.admin_init')->first();
         $this->assertNotNull($log);
         $this->assertSame($admin->id, $log->user_id);
         $this->assertSame('super@example.com', $log->details['email']);

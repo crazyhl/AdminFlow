@@ -11,6 +11,7 @@
         "adminflow/cms": "@dev"
     },
     "require-dev": {
+        "carthage-software/mago": "^1.59",
         "fakerphp/faker": "^1.23",
         "laravel/sail": "^1.30",
         "mockery/mockery": "^1.6",
@@ -39,6 +40,10 @@
         }
     },
     "scripts": {
+        "mago": "./vendor/bin/mago fmt && ./vendor/bin/mago lint",
+        "mago:fmt": "./vendor/bin/mago fmt",
+        "mago:lint": "./vendor/bin/mago lint",
+        "mago:fix": "./vendor/bin/mago lint --fix --format-after-fix",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

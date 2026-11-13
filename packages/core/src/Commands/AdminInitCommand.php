@@ -53,11 +53,9 @@ class AdminInitCommand extends Command
         $this->info($this->t('title'));
 
         // 检查是否已存在超级管理员
-        $existingAdmin = User::where('is_admin', true)
-            ->orWhere('role', Role::SUPER_ADMIN->value)
-            ->first();
+        $existingAdmin = User::query()->where('is_admin', true)->orWhere('role', Role::SUPER_ADMIN->value)->first();
 
-        if ($existingAdmin && ! $this->option('force')) {
+        if ($existingAdmin && !$this->option('force')) {
             $this->warn($this->t('already_exists', ['email' => $existingAdmin->email]));
 
             return self::FAILURE;
@@ -83,7 +81,7 @@ class AdminInitCommand extends Command
             return self::FAILURE;
         }
 
-        if (User::where('email', $email)->exists()) {
+        if (User::query()->where('email', $email)->exists()) {
             $this->error($this->t('err_email_exists'));
 
             return self::FAILURE;
@@ -92,14 +90,18 @@ class AdminInitCommand extends Command
         // 3. 输入密码（隐式输入）
         $password = $this->secret($this->t('prompt_password'));
 
-        if (! is_string($password) || strlen($password) < 8) {
+        if (!is_string($password) || strlen($password) < 8) {
             $this->error($this->t('err_password_too_short'));
 
             return self::FAILURE;
         }
 
         // 强密码校验：需包含字母与数字，且非预设弱密码
-        if (! preg_match('/[A-Za-z]/', $password) || ! preg_match('/[0-9]/', $password) || in_array(strtolower($password), $this->weakPasswords, true)) {
+        if (
+            !preg_match('/[A-Za-z]/', $password)
+            || !preg_match('/[0-9]/', $password)
+            || in_array(strtolower($password), $this->weakPasswords, true)
+        ) {
             $this->error($this->t('err_password_weak'));
 
             return self::FAILURE;
@@ -132,7 +134,7 @@ class AdminInitCommand extends Command
                 'email' => $admin->email,
                 'locale' => $locale ?: config('app.locale'),
             ],
-            userId: $admin->id
+            userId: $admin->id,
         );
 
         $this->newLine();

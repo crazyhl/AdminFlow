@@ -17,7 +17,8 @@ class AdminInitCommandTest extends TestCase
      */
     public function test_admin_init_success_in_chinese(): void
     {
-        $this->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
             ->expectsOutput('=== AdminFlow 超级管理员账号初始化 ===')
             ->expectsQuestion('请输入管理员姓名/昵称', '系统超管')
             ->expectsQuestion('请输入管理员邮箱地址', 'admin@example.com')
@@ -26,7 +27,7 @@ class AdminInitCommandTest extends TestCase
             ->expectsOutput('超级管理员账号 [admin@example.com] 创建成功！')
             ->assertExitCode(0);
 
-        $admin = User::where('email', 'admin@example.com')->first();
+        $admin = User::query()->where('email', 'admin@example.com')->first();
         $this->assertNotNull($admin);
         $this->assertSame('系统超管', $admin->name);
         $this->assertTrue($admin->is_admin);
@@ -39,7 +40,8 @@ class AdminInitCommandTest extends TestCase
      */
     public function test_admin_init_success_in_english(): void
     {
-        $this->artisan('adminflow:admin-init', ['--locale' => 'en'])
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'en'])
             ->expectsOutput('=== AdminFlow Super Administrator Initialization ===')
             ->expectsQuestion('Please enter the administrator name', 'Super Admin')
             ->expectsQuestion('Please enter the administrator email address', 'admin.en@example.com')
@@ -67,7 +69,8 @@ class AdminInitCommandTest extends TestCase
             'role' => Role::SUPER_ADMIN,
         ]);
 
-        $this->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
             ->expectsOutput('系统中已存在超级管理员账号 [existing@example.com]。如需继续创建，请加上 --force 参数。')
             ->assertExitCode(1);
     }
@@ -77,7 +80,8 @@ class AdminInitCommandTest extends TestCase
      */
     public function test_admin_init_rejects_weak_password(): void
     {
-        $this->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
             ->expectsQuestion('请输入管理员姓名/昵称', '超管')
             ->expectsQuestion('请输入管理员邮箱地址', 'test@example.com')
             ->expectsQuestion('请输入管理员密码（至少 8 位，包含字母与数字）', '12345678')
@@ -90,7 +94,8 @@ class AdminInitCommandTest extends TestCase
      */
     public function test_admin_init_rejects_mismatched_passwords(): void
     {
-        $this->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN'])
             ->expectsQuestion('请输入管理员姓名/昵称', '超管')
             ->expectsQuestion('请输入管理员邮箱地址', 'test@example.com')
             ->expectsQuestion('请输入管理员密码（至少 8 位，包含字母与数字）', 'Str0ngPass123')

@@ -1,0 +1,32 @@
+# Mago configuration file
+# https://mago.carthage.software/1.59.0/zh/
+version = "1"
+php-version = "8.4.0"
+
+[source]
+workspace = "."
+paths = [
+    "bootstrap",
+    "packages",
+    "routes",
+    "tests",
+]
+includes = ["vendor"]
+excludes = [
+    "storage/**",
+    "bootstrap/cache/**",
+    "vendor/**",
+]
+
+[formatter]
+print-width = 120
+tab-width = 4
+use-tabs = false
+
+[linter]
+integrations = ["laravel", "phpunit"]
+
+[linter.rules]
+# 排除测试与迁移中的字面量密码检查（测试用例包含模拟密码是正当的）
+no-literal-password = { level = "error", exclude = ["tests/**", "packages/*/database/**"] }
+strict-types = { level = "warning" }

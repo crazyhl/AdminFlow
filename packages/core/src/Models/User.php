@@ -9,7 +9,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
+    use Notifiable;
 
     /**
      * 指定核心用户表名
@@ -50,6 +51,7 @@ class User extends Authenticatable
         return [
             'is_admin' => 'boolean',
             'is_active' => 'boolean',
+            // @mago-expect lint:no-literal-password
             'password' => 'hashed',
             'role' => Role::class,
         ];
@@ -84,7 +86,7 @@ class User extends Authenticatable
      */
     public function hasPermission(string $permission): bool
     {
-        if (! $this->isActive()) {
+        if (!$this->isActive()) {
             return false;
         }
 

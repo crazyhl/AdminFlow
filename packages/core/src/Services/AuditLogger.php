@@ -47,7 +47,7 @@ class AuditLogger
         array $details = [],
         ?int $userId = null,
         ?string $ip = null,
-        ?string $userAgent = null
+        ?string $userAgent = null,
     ): AuditLog {
         $resolvedUserId = $userId ?? Auth::id();
 
@@ -90,7 +90,7 @@ class AuditLogger
         array $details = [],
         ?int $userId = null,
         ?string $ip = null,
-        ?string $userAgent = null
+        ?string $userAgent = null,
     ): AuditLog {
         /** @var self $instance */
         $instance = App::make(self::class);

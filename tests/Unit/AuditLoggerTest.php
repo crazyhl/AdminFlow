@@ -2,8 +2,6 @@
 
 namespace Tests\Unit;
 
-use AdminFlow\Core\Models\AuditLog;
-use AdminFlow\Core\Models\User;
 use AdminFlow\Core\Services\AuditLogger;
 use PHPUnit\Framework\TestCase;
 
