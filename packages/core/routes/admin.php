@@ -1,5 +1,6 @@
 <?php
 
+use AdminFlow\Core\Http\Controllers\AuditLogController;
 use AdminFlow\Core\Http\Controllers\AuthController;
 use AdminFlow\Core\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,11 @@ Route::prefix('admin')
                 Route::post('/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('toggle-active');
                 Route::post('/{user}/reset-password', [UserController::class, 'resetPassword'])->name('reset-password');
                 Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+            });
+
+            // 操作审计日志管理 (中文化全量流水与筛选)
+            Route::prefix('audit-logs')->name('admin.audit-logs.')->group(function (): void {
+                Route::get('/', [AuditLogController::class, 'index'])->name('index');
             });
 
             // 布局方案选型对比预览 (供用户直观审阅方案 A 与方案 B)

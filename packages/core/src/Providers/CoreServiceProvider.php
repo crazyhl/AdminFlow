@@ -4,10 +4,13 @@ namespace AdminFlow\Core\Providers;
 
 use AdminFlow\Core\Commands\AdminInitCommand;
 use AdminFlow\Core\Http\Middleware\AuthenticateAdmin;
+use AdminFlow\Core\Models\AuditLog;
 use AdminFlow\Core\Models\User;
+use AdminFlow\Core\Policies\AuditLogPolicy;
 use AdminFlow\Core\Policies\UserPolicy;
 use AdminFlow\Core\Services\AuditLogger;
 use AdminFlow\Core\Services\UserService;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -43,6 +46,10 @@ class CoreServiceProvider extends ServiceProvider
     {
         // 注册授权策略
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
+
+        // 设置全系统默认分页视图 (深度适配 Nordic Minimal 深浅色模式)
+        Paginator::defaultView('adminflow-core::pagination.nordic');
 
         // 注册中间件别名
         $router->aliasMiddleware('admin.auth', AuthenticateAdmin::class);

@@ -129,7 +129,7 @@
                         <i class="bi bi-compass text-sm shrink-0"></i>
                         <span class="sidebar-label truncate">控制台仪表盘</span>
                     </a>
-                    <a href="#" class="sidebar-nav-link flex items-center gap-2.5 px-2.5 py-1.5 rounded-md font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60 mt-0.5 transition-colors" title="操作审计日志">
+                    <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-nav-link flex items-center gap-2.5 px-2.5 py-1.5 rounded-md font-medium {{ request()->routeIs('admin.audit-logs.*') ? 'bg-stone-200/70 dark:bg-stone-800 text-stone-900 dark:text-stone-100' : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60' }} mt-0.5 transition-colors" title="操作审计日志">
                         <i class="bi bi-clock-history text-sm shrink-0"></i>
                         <span class="sidebar-label truncate">操作审计日志</span>
                     </a>

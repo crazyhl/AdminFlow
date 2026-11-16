@@ -71,7 +71,12 @@
                         <i class="bi bi-clock-history text-sm text-stone-500"></i>
                         <span>最新操作审计流水</span>
                     </div>
-                    <span class="text-[11px] text-stone-400 font-mono">展示最近 8 条全量审计</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[11px] text-stone-400 font-mono">最近 8 条</span>
+                        <a href="{{ route('admin.audit-logs.index') }}" class="text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">
+                            查看全量审计 →
+                        </a>
+                    </div>
                 </div>
 
                 <div class="bg-white dark:bg-[#202020] rounded-xl border border-stone-200/70 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors duration-150">
@@ -79,8 +84,8 @@
                         <div class="p-3.5 px-4.5 flex items-start justify-between gap-4 hover:bg-stone-50/40 dark:hover:bg-stone-800/30 transition-colors">
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-medium {{ str_starts_with($log->action, 'auth.') ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60' : (str_starts_with($log->action, 'user.') ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60' : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300') }}">
-                                        {{ $log->action }}
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $log->badge_class }}">
+                                        {{ $log->module_label }} · {{ $log->action_label }}
                                     </span>
                                     <span class="text-xs font-medium text-stone-900 dark:text-stone-100">
                                         {{ $log->user?->name ?? '系统 CLI / 访客' }}
@@ -93,6 +98,8 @@
                                     <span>IP: {{ $log->ip_address ?? '127.0.0.1' }}</span>
                                     <span>·</span>
                                     <span>客户端: {{ Str::limit($log->user_agent, 45) }}</span>
+                                    <span>·</span>
+                                    <span class="text-stone-400 text-[10px]">标识: {{ $log->action }}</span>
                                 </div>
                             </div>
                             <div class="text-right shrink-0 pt-0.5">

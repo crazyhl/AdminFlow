@@ -390,11 +390,11 @@
                     </table>
                 </div>
 
-                <!-- 分页组件 -->
+                <!-- 分页组件 (深度适配深浅色模式) -->
                 <div class="p-3.5 px-4 border-t border-stone-200/60 dark:border-stone-800 flex items-center justify-between text-xs text-stone-400 font-mono text-[11px]">
                     <span>共 {{ $users->total() }} 名系统成员</span>
                     @if($users->hasPages())
-                        <div>{{ $users->links() }}</div>
+                        <div>{{ $users->links('adminflow-core::pagination.nordic') }}</div>
                     @else
                         <span>状态正常 · 实时同步</span>
                     @endif
