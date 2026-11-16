@@ -222,6 +222,35 @@ class UserService
     }
 
     /**
+     * 删除用户账号
+     */
+    public function delete(User $target, ?User $actor = null): void
+    {
+        if ($actor && $actor->id === $target->id) {
+            throw new InvalidArgumentException('禁止删除当前登录账号');
+        }
+
+        if ($target->isSuperAdmin()) {
+            throw new InvalidArgumentException('禁止删除超级管理员账号');
+        }
+
+        $email = $target->email;
+        $targetId = $target->id;
+
+        $target->delete();
+
+        AuditLogger::record(
+            action: 'user.delete',
+            target: $target,
+            details: [
+                'deleted_user_id' => $targetId,
+                'deleted_email' => $email,
+            ],
+            userId: $actor?->id,
+        );
+    }
+
+    /**
      * 校验密码强度（采用 Laravel 官方 Password 校验器）
      */
     protected function assertPasswordStrength(#[\SensitiveParameter] string $password): void

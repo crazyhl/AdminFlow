@@ -36,6 +36,7 @@ halstead = { enabled = false }
 
 # 参数列表阈值适配上下文传参
 excessive-parameter-list = { threshold = 8 }
+too-many-methods = { threshold = 15, exclude = ["tests/**"] }
 
 # 适配 Laravel / PHPUnit 社区惯用实践
 assertion-style = { enabled = false }

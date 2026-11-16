@@ -1,6 +1,7 @@
 <?php
 
 use AdminFlow\Core\Http\Controllers\AuthController;
+use AdminFlow\Core\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -18,5 +19,15 @@ Route::prefix('admin')
 
                 return view('adminflow-core::dashboard', compact('auditLogs'));
             })->name('admin.dashboard');
+
+            // 成员与用户管理
+            Route::prefix('users')->name('admin.users.')->group(function (): void {
+                Route::get('/', [UserController::class, 'index'])->name('index');
+                Route::post('/', [UserController::class, 'store'])->name('store');
+                Route::put('/{user}', [UserController::class, 'update'])->name('update');
+                Route::post('/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('toggle-active');
+                Route::post('/{user}/reset-password', [UserController::class, 'resetPassword'])->name('reset-password');
+                Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+            });
         });
     });

@@ -137,12 +137,14 @@
 
                 <div>
                     <div class="text-[11px] font-medium text-stone-400 dark:text-stone-500 px-2 mb-1.5 sidebar-section-title">成员与权限</div>
-                    <a href="#" class="sidebar-nav-link flex items-center justify-between px-2.5 py-1.5 rounded-md font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60 transition-colors" title="管理员列表">
+                    <a href="{{ route('admin.users.index') }}" class="sidebar-nav-link flex items-center justify-between px-2.5 py-1.5 rounded-md font-medium {{ request()->routeIs('admin.users.*') ? 'bg-stone-200/70 dark:bg-stone-800 text-stone-900 dark:text-stone-100' : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60' }} transition-colors" title="成员列表与授权">
                         <div class="flex items-center gap-2.5 overflow-hidden">
                             <i class="bi bi-people text-sm shrink-0"></i>
-                            <span class="sidebar-label truncate">管理员列表</span>
+                            <span class="sidebar-label truncate">成员列表与授权</span>
                         </div>
-                        <span class="sidebar-badge text-[10px] bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-1.5 py-0.5 rounded font-mono shrink-0">3</span>
+                        <span class="sidebar-badge text-[10px] bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-1.5 py-0.5 rounded font-mono shrink-0">
+                            {{ \AdminFlow\Core\Models\User::count() }}
+                        </span>
                     </a>
                 </div>
 
@@ -256,11 +258,73 @@
             </div>
         </header>
 
+        <!-- 全局 Toast 提示通知 (Nordic Minimal 风格) -->
+        <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
+            @if(session('success'))
+                <div class="pointer-events-auto flex items-start gap-3 p-3.5 bg-white dark:bg-[#202020] rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-lg text-xs transition-all duration-200" role="alert">
+                    <div class="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <i class="bi bi-check2 text-xs"></i>
+                    </div>
+                    <div class="flex-1 text-stone-800 dark:text-stone-200 pt-0.5">
+                        {{ session('success') }}
+                    </div>
+                    <button type="button" onclick="this.closest('[role=alert]').remove()" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
+                        <i class="bi bi-x-lg text-[10px]"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="pointer-events-auto flex items-start gap-3 p-3.5 bg-white dark:bg-[#202020] rounded-xl border border-rose-200 dark:border-rose-900/60 shadow-lg text-xs transition-all duration-200" role="alert">
+                    <div class="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <i class="bi bi-exclamation text-xs"></i>
+                    </div>
+                    <div class="flex-1 text-rose-700 dark:text-rose-300 pt-0.5">
+                        {{ session('error') }}
+                    </div>
+                    <button type="button" onclick="this.closest('[role=alert]').remove()" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
+                        <i class="bi bi-x-lg text-[10px]"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="pointer-events-auto flex items-start gap-3 p-3.5 bg-white dark:bg-[#202020] rounded-xl border border-rose-200 dark:border-rose-900/60 shadow-lg text-xs transition-all duration-200" role="alert">
+                    <div class="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <i class="bi bi-exclamation-triangle text-xs"></i>
+                    </div>
+                    <div class="flex-1 text-stone-800 dark:text-stone-200 pt-0.5 space-y-1">
+                        <div class="font-medium text-rose-600 dark:text-rose-400">请核对以下输入错误：</div>
+                        <ul class="list-disc list-inside text-stone-600 dark:text-stone-400 space-y-0.5">
+                            @foreach($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <button type="button" onclick="this.closest('[role=alert]').remove()" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
+                        <i class="bi bi-x-lg text-[10px]"></i>
+                    </button>
+                </div>
+            @endif
+        </div>
+
         <!-- 页面主体容器 -->
         <main class="p-8 max-w-5xl space-y-8">
             @yield('content')
         </main>
     </div>
 
+    <script>
+        // 自动消失 Toast
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('#toast-container [role=alert]');
+            alerts.forEach(el => {
+                setTimeout(() => {
+                    el.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => el.remove(), 300);
+                }, 4000);
+            });
+        });
+    </script>
 </body>
 </html>
