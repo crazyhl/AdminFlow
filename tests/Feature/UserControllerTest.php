@@ -230,6 +230,51 @@ class UserControllerTest extends TestCase
             'action' => 'user.reset_password',
             'target_id' => (string) $target->id,
         ]);
+
+        // 测试 JSON 异步提交重置成功场景
+        $jsonResponse = $this->actingAs($this->admin, 'admin')->postJson(route('admin.users.reset-password', $target), [
+            'password' => 'AnotherStrongPass2026',
+            'password_confirmation' => 'AnotherStrongPass2026',
+        ]);
+
+        $jsonResponse->assertOk();
+        $jsonResponse->assertJson([
+            'success' => true,
+        ]);
+        $this->assertTrue(Hash::check('AnotherStrongPass2026', $target->fresh()->password));
+    }
+
+    public function test_reset_password_rejects_mismatched_confirmation(): void
+    {
+        $target = User::create([
+            'name' => '不匹配目标',
+            'email' => 'mismatch@adminflow.test',
+            'password' => 'OldPassword2026',
+            'role' => Role::EDITOR,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->post(route('admin.users.reset-password', $target), [
+            'password' => 'NewStrongPass2026',
+            'password_confirmation' => 'DifferentPassword2026',
+        ]);
+
+        $response->assertSessionHasErrors('password');
+        $this->assertTrue(Hash::check('OldPassword2026', $target->fresh()->password));
+        $this->assertDatabaseMissing('adminflow_audit_logs', [
+            'action' => 'user.reset_password',
+            'target_id' => (string) $target->id,
+        ]);
+
+        // 测试 JSON 异步提交场景 (422 无刷新内嵌报错)
+        $jsonResponse = $this->actingAs($this->admin, 'admin')->postJson(route('admin.users.reset-password', $target), [
+            'password' => 'NewStrongPass2026',
+            'password_confirmation' => 'DifferentPassword2026',
+        ]);
+
+        $jsonResponse->assertUnprocessable();
+        $jsonResponse->assertJsonValidationErrors(['password']);
+        $this->assertSame('两次输入的新密码不一致，请重新核对', $jsonResponse->json('errors.password.0'));
     }
 
     public function test_delete_user_and_self_delete_guard(): void

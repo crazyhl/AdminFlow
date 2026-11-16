@@ -5,6 +5,7 @@ namespace AdminFlow\Core\Http\Controllers;
 use AdminFlow\Core\Enums\Role;
 use AdminFlow\Core\Models\User;
 use AdminFlow\Core\Services\UserService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -43,7 +44,7 @@ final class UserController extends Controller
     /**
      * 新增用户提交
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         Gate::authorize('create', User::class);
 
@@ -63,6 +64,13 @@ final class UserController extends Controller
         try {
             $user = $this->userService->create($data, $actor);
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "成员「{$user->name}」已成功创建",
+                ]);
+            }
+
             return redirect()->route('admin.users.index')
                 ->with('success', "成员「{$user->name}」已成功创建");
         } catch (InvalidArgumentException $e) {
@@ -75,7 +83,7 @@ final class UserController extends Controller
     /**
      * 更新用户基本信息与角色
      */
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user): RedirectResponse|JsonResponse
     {
         Gate::authorize('update', $user);
 
@@ -96,6 +104,13 @@ final class UserController extends Controller
 
         try {
             $this->userService->update($user, $data, $actor);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "成员「{$user->name}」资料已更新",
+                ]);
+            }
 
             return redirect()->route('admin.users.index')
                 ->with('success', "成员「{$user->name}」资料已更新");
@@ -130,12 +145,16 @@ final class UserController extends Controller
     /**
      * 重置成员密码
      */
-    public function resetPassword(Request $request, User $user): RedirectResponse
+    public function resetPassword(Request $request, User $user): RedirectResponse|JsonResponse
     {
         Gate::authorize('update', $user);
 
         $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.required' => '请输入新密码',
+            'password.min' => '新密码长度至少需要 8 位，须包含英文字母与数字',
+            'password.confirmed' => '两次输入的新密码不一致，请重新核对',
         ]);
 
         /** @var User|null $actor */
@@ -143,6 +162,13 @@ final class UserController extends Controller
 
         try {
             $this->userService->resetPassword($user, (string) $request->input('password'), $actor);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "成员「{$user->name}」的密码已重置",
+                ]);
+            }
 
             return redirect()->back()
                 ->with('success', "成员「{$user->name}」的密码已重置");
