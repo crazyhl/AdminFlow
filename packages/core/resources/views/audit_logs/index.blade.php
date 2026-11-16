@@ -5,67 +5,27 @@
 
 @section('content')
     <div class="w-full space-y-6">
-        <!-- 标题区 -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="space-y-1">
-                <div class="flex items-center gap-2.5">
-                    <h1 class="text-2xl font-serif-nordic font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                        操作审计日志
-                    </h1>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900/60">
-                        不可变存证
-                    </span>
+        <!-- 页面标题与操作 -->
+        <x-admin::page-header title="操作审计日志" description="全量记录系统关键管理与业务操作 · 口令与敏感参数强制脱敏落库 · 供安全合规追溯审查。">
+            <x-slot:badge>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900/60">
+                    不可变存证
+                </span>
+            </x-slot:badge>
+            <x-slot:actions>
+                <div class="text-xs text-stone-400 font-mono flex items-center gap-2">
+                    <i class="bi bi-shield-check text-emerald-600"></i>
+                    <span>自动脱敏保护中</span>
                 </div>
-                <p class="text-xs text-stone-500 dark:text-stone-400">
-                    全量记录系统关键管理与业务操作 · 口令与敏感参数强制脱敏落库 · 供安全合规追溯审查。
-                </p>
-            </div>
+            </x-slot:actions>
+        </x-admin::page-header>
 
-            <div class="text-xs text-stone-400 font-mono flex items-center gap-2">
-                <i class="bi bi-shield-check text-emerald-600"></i>
-                <span>自动脱敏保护中</span>
-            </div>
-        </div>
-
-        <!-- 扁平微指标卡 (Nordic Minimal 风格) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 py-5 border-y border-stone-200/60 dark:border-stone-800">
-            <div>
-                <div class="text-xs text-stone-400 dark:text-stone-500">累计操作审计</div>
-                <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">
-                    {{ $stats['total'] }}
-                </div>
-                <div class="text-[11px] text-stone-400 mt-1 font-mono">不可更改/软删</div>
-            </div>
-
-            <div>
-                <div class="text-xs text-stone-400 dark:text-stone-500">今日发生操作</div>
-                <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">
-                    {{ $stats['today'] }}
-                </div>
-                <div class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
-                    系统实时捕获记录
-                </div>
-            </div>
-
-            <div>
-                <div class="text-xs text-stone-400 dark:text-stone-500">认证登录事件</div>
-                <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">
-                    {{ $stats['auth'] }}
-                </div>
-                <div class="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1 font-mono">
-                    包含成功、登出与限流
-                </div>
-            </div>
-
-            <div>
-                <div class="text-xs text-stone-400 dark:text-stone-500">敏感控制事件</div>
-                <div class="text-3xl font-serif-nordic font-bold text-amber-700 dark:text-amber-400 mt-1">
-                    {{ $stats['sensitive'] }}
-                </div>
-                <div class="text-[11px] text-amber-600 dark:text-amber-500 mt-1 font-mono">
-                    密码重置/删除/启停
-                </div>
-            </div>
+        <!-- 扁平微指标卡 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <x-admin::stat-card label="累计操作审计" :value="$stats['total']" subtext="不可更改/软删" />
+            <x-admin::stat-card label="今日发生操作" :value="$stats['today']" subtext="系统实时捕获记录" color="emerald" />
+            <x-admin::stat-card label="认证登录事件" :value="$stats['auth']" subtext="包含成功、登出与限流" color="stone" />
+            <x-admin::stat-card label="敏感控制事件" :value="$stats['sensitive']" subtext="密码重置/删除/启停" color="amber" />
         </div>
 
         <!-- 筛选与搜索表单 -->
@@ -203,86 +163,57 @@
                             </tr>
 
                             <!-- 审计日志详情 Modal -->
-                            <div id="hs-modal-audit-details-{{ $log->id }}" class="hs-overlay hidden fixed inset-0 z-70 overflow-x-hidden overflow-y-auto bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-                                <div class="hs-overlay-open:opacity-100 hs-overlay-open:scale-100 opacity-0 scale-95 transition-all duration-200 w-full max-w-lg bg-white dark:bg-[#202020] rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-2xl overflow-hidden text-left">
-                                    <!-- 头部 -->
-                                    <div class="px-6 py-5 border-b border-stone-200/60 dark:border-stone-800 flex items-start justify-between gap-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700">
-                                                <i class="bi bi-file-earmark-text text-base"></i>
-                                            </div>
-                                            <div>
-                                                <div class="flex items-center gap-2">
-                                                    <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                                                        {{ $log->action_label }}
-                                                    </h3>
-                                                    <span class="text-[10px] px-1.5 py-0.2 rounded font-mono {{ $log->badge_class }}">
-                                                        {{ $log->module_label }}
-                                                    </span>
-                                                </div>
-                                                <p class="text-[11px] text-stone-400 dark:text-stone-500 font-mono mt-0.5">
-                                                    ID #{{ $log->id }} · {{ $log->created_at?->format('Y-m-d H:i:s') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1" data-hs-overlay="#hs-modal-audit-details-{{ $log->id }}">
-                                            <i class="bi bi-x-lg text-xs"></i>
-                                        </button>
+                            <x-admin::modal id="hs-modal-audit-details-{{ $log->id }}" :title="$log->action_label" :subtitle="'ID #' . $log->id . ' · ' . $log->created_at?->format('Y-m-d H:i:s')" icon="bi-file-earmark-text" maxWidth="max-w-lg">
+                                <div class="p-6 space-y-4 text-xs">
+                                    <!-- 动作说明 -->
+                                    <div class="p-3 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-stone-200/60 dark:border-stone-800/60 space-y-1">
+                                        <div class="text-[11px] font-medium text-stone-500 dark:text-stone-400">操作释义</div>
+                                        <div class="text-stone-800 dark:text-stone-200 font-medium">{{ $log->action_description }}</div>
+                                        <div class="text-[10px] text-stone-400 font-mono">底层标识: {{ $log->action }}</div>
                                     </div>
 
-                                    <!-- 内容体 -->
-                                    <div class="p-6 space-y-4 text-xs">
-                                        <!-- 动作说明 -->
-                                        <div class="p-3 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-stone-200/60 dark:border-stone-800/60 space-y-1">
-                                            <div class="text-[11px] font-medium text-stone-500 dark:text-stone-400">操作释义</div>
-                                            <div class="text-stone-800 dark:text-stone-200 font-medium">{{ $log->action_description }}</div>
-                                            <div class="text-[10px] text-stone-400 font-mono">底层标识: {{ $log->action }}</div>
-                                        </div>
-
-                                        <!-- 元信息两列 -->
-                                        <div class="grid grid-cols-2 gap-3 text-xs">
-                                            <div class="space-y-0.5">
-                                                <div class="text-stone-400 text-[11px]">操作执行人</div>
-                                                <div class="font-medium text-stone-900 dark:text-stone-100">
-                                                    {{ $log->user?->name ?? '系统访客 / CLI' }}
-                                                </div>
-                                                <div class="text-stone-400 font-mono text-[10px]">{{ $log->user?->email ?? '-' }}</div>
+                                    <!-- 元信息两列 -->
+                                    <div class="grid grid-cols-2 gap-3 text-xs">
+                                        <div class="space-y-0.5">
+                                            <div class="text-stone-400 text-[11px]">操作执行人</div>
+                                            <div class="font-medium text-stone-900 dark:text-stone-100">
+                                                {{ $log->user?->name ?? '系统访客 / CLI' }}
                                             </div>
-                                            <div class="space-y-0.5">
-                                                <div class="text-stone-400 text-[11px]">网络来源 IP</div>
-                                                <div class="font-mono text-stone-900 dark:text-stone-100">
-                                                    {{ $log->ip_address ?? '127.0.0.1' }}
-                                                </div>
+                                            <div class="text-stone-400 font-mono text-[10px]">{{ $log->user?->email ?? '-' }}</div>
+                                        </div>
+                                        <div class="space-y-0.5">
+                                            <div class="text-stone-400 text-[11px]">网络来源 IP</div>
+                                            <div class="font-mono text-stone-900 dark:text-stone-100">
+                                                {{ $log->ip_address ?? '127.0.0.1' }}
                                             </div>
                                         </div>
+                                    </div>
 
-                                        @if($log->user_agent)
-                                            <div class="space-y-1">
-                                                <div class="text-stone-400 text-[11px]">客户端环境 (User Agent)</div>
-                                                <div class="p-2.5 bg-stone-50 dark:bg-stone-900/60 rounded-lg text-[11px] font-mono text-stone-600 dark:text-stone-300 break-all border border-stone-200/60 dark:border-stone-800/60">
-                                                    {{ $log->user_agent }}
-                                                </div>
-                                            </div>
-                                        @endif
-
-                                        <!-- 脱敏上下文业务数据 Details (JSON 树) -->
+                                    @if($log->user_agent)
                                         <div class="space-y-1">
-                                            <div class="flex items-center justify-between">
-                                                <div class="text-stone-400 text-[11px]">脱敏业务明细载荷 (Payload)</div>
-                                                <span class="text-[10px] text-emerald-600 font-mono">已强制脱敏</span>
+                                            <div class="text-stone-400 text-[11px]">客户端环境 (User Agent)</div>
+                                            <div class="p-2.5 bg-stone-50 dark:bg-stone-900/60 rounded-lg text-[11px] font-mono text-stone-600 dark:text-stone-300 break-all border border-stone-200/60 dark:border-stone-800/60">
+                                                {{ $log->user_agent }}
                                             </div>
-                                            <pre class="p-3 bg-stone-900 text-stone-100 rounded-xl text-[11px] font-mono overflow-x-auto max-h-56 leading-relaxed"><code>{{ json_encode($log->details ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
                                         </div>
-                                    </div>
+                                    @endif
 
-                                    <!-- 底部 -->
-                                    <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex justify-end">
-                                        <button type="button" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs" data-hs-overlay="#hs-modal-audit-details-{{ $log->id }}">
-                                            关闭详情
-                                        </button>
+                                    <!-- 脱敏上下文业务数据 Details (JSON 树) -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-stone-400 text-[11px]">脱敏业务明细载荷 (Payload)</div>
+                                            <span class="text-[10px] text-emerald-600 font-mono">已强制脱敏</span>
+                                        </div>
+                                        <pre class="p-3 bg-stone-900 text-stone-100 rounded-xl text-[11px] font-mono overflow-x-auto max-h-56 leading-relaxed"><code>{{ json_encode($log->details ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
                                     </div>
                                 </div>
-                            </div>
+
+                                <x-slot:footer>
+                                    <button type="button" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs" data-hs-overlay="#hs-modal-audit-details-{{ $log->id }}">
+                                        关闭详情
+                                    </button>
+                                </x-slot:footer>
+                            </x-admin::modal>
                         @empty
                             <tr>
                                 <td colspan="6" class="py-10 text-center text-stone-400 dark:text-stone-500 font-mono">

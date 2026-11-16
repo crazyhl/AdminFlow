@@ -13,36 +13,26 @@
         <!-- 核心数据管理区：方案 B 下占 8 列，方案 A 下全宽 12 列展开 -->
         <div class="{{ $currentLayout === 'b' ? 'xl:col-span-8' : 'w-full' }} space-y-6">
             <!-- 标题、布局切换胶囊与新增按钮 -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <h1 class="text-2xl font-serif-nordic font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                            成员与权限管理
-                        </h1>
-                        <!-- 方案切换胶囊 -->
-                        <div class="inline-flex items-center p-0.5 rounded-lg bg-stone-200/60 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-[11px] font-mono">
-                            <a href="{{ request()->fullUrlWithQuery(['layout' => 'b']) }}" class="px-2 py-0.5 rounded-md transition-colors {{ $currentLayout === 'b' ? 'bg-white dark:bg-[#202020] text-stone-900 dark:text-stone-100 shadow-2xs font-semibold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300' }}" title="切换至双栏工作台布局">
-                                方案 B (双栏工作台)
-                            </a>
-                            <a href="{{ request()->fullUrlWithQuery(['layout' => 'a']) }}" class="px-2 py-0.5 rounded-md transition-colors {{ $currentLayout === 'a' ? 'bg-white dark:bg-[#202020] text-stone-900 dark:text-stone-100 shadow-2xs font-semibold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300' }}" title="切换至流式全宽布局">
-                                方案 A (流式全宽)
-                            </a>
-                        </div>
+            <x-admin::page-header title="成员与权限管理" description="管理系统协同成员、配置预设角色与启停访问权限 · 点击上方胶囊可即时切换排版形态。">
+                <x-slot:actions>
+                    <!-- 方案切换胶囊 -->
+                    <div class="inline-flex items-center p-0.5 rounded-lg bg-stone-200/60 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-[11px] font-mono">
+                        <a href="{{ request()->fullUrlWithQuery(['layout' => 'b']) }}" class="px-2 py-0.5 rounded-md transition-colors {{ $currentLayout === 'b' ? 'bg-white dark:bg-[#202020] text-stone-900 dark:text-stone-100 shadow-2xs font-semibold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300' }}" title="切换至双栏工作台布局">
+                            方案 B (双栏工作台)
+                        </a>
+                        <a href="{{ request()->fullUrlWithQuery(['layout' => 'a']) }}" class="px-2 py-0.5 rounded-md transition-colors {{ $currentLayout === 'a' ? 'bg-white dark:bg-[#202020] text-stone-900 dark:text-stone-100 shadow-2xs font-semibold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300' }}" title="切换至流式全宽布局">
+                            方案 A (流式全宽)
+                        </a>
                     </div>
-                    <p class="text-xs text-stone-500 dark:text-stone-400">
-                        管理系统协同成员、配置预设角色与启停访问权限 · 点击上方胶囊可即时切换排版形态。
-                    </p>
-                </div>
 
-                @can('create', \AdminFlow\Core\Models\User::class)
-                    <div>
+                    @can('create', \AdminFlow\Core\Models\User::class)
                         <button type="button" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs" data-hs-overlay="#hs-modal-create-user">
                             <i class="bi bi-plus-lg text-xs"></i>
                             <span>添加成员</span>
                         </button>
-                    </div>
-                @endcan
-            </div>
+                    @endcan
+                </x-slot:actions>
+            </x-admin::page-header>
 
             <!-- 极简微统计卡 (Nordic Minimal 排印) -->
             <div class="grid grid-cols-3 gap-6 py-4 border-y border-stone-200/60 dark:border-stone-800">
@@ -207,177 +197,99 @@
                                 </tr>
 
                                 @can('update', $user)
-                                    <!-- 编辑成员 Modal (Nordic Minimal 精致规范) -->
-                                    <div id="hs-modal-edit-user-{{ $user->id }}" class="hs-overlay hidden fixed inset-0 z-70 overflow-x-hidden overflow-y-auto bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-                                        <div class="hs-overlay-open:opacity-100 hs-overlay-open:scale-100 opacity-0 scale-95 transition-all duration-200 w-full max-w-md bg-white dark:bg-[#202020] rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-2xl overflow-hidden">
-                                            <!-- 头部 -->
-                                            <div class="px-6 py-5 border-b border-stone-200/60 dark:border-stone-800/80 flex items-start justify-between gap-4">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700">
-                                                        <i class="bi bi-person-gear text-base"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                                                            编辑成员资料
-                                                        </h3>
-                                                        <p class="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                                                            更新成员姓名、登录邮箱与分配的系统角色
-                                                        </p>
-                                                    </div>
+                                    <!-- 编辑成员 Modal -->
+                                    <x-admin::modal id="hs-modal-edit-user-{{ $user->id }}" title="编辑成员资料" subtitle="更新成员姓名、登录邮箱与分配的系统角色" icon="bi-person-gear">
+                                        <form method="POST" action="{{ route('admin.users.update', $user) }}">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="p-6 space-y-4 text-xs">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">成员姓名 <span class="text-rose-500">*</span></label>
+                                                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
                                                 </div>
-                                                <button type="button" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1" data-hs-overlay="#hs-modal-edit-user-{{ $user->id }}">
-                                                    <i class="bi bi-x-lg text-xs"></i>
-                                                </button>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">登录邮箱 <span class="text-rose-500">*</span></label>
+                                                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">预设角色分配 <span class="text-rose-500">*</span></label>
+                                                    <select name="role" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                                                        @foreach($roles as $role)
+                                                            <option value="{{ $role->value }}" {{ $user->role === $role ? 'selected' : '' }}>
+                                                                {{ $role->label() }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
                                             </div>
 
-                                            <form method="POST" action="{{ route('admin.users.update', $user) }}">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="p-6 space-y-4 text-xs">
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">成员姓名 <span class="text-rose-500">*</span></label>
-                                                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">登录邮箱 <span class="text-rose-500">*</span></label>
-                                                        <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">预设角色分配 <span class="text-rose-500">*</span></label>
-                                                        <select name="role" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                                            @foreach($roles as $role)
-                                                                <option value="{{ $role->value }}" {{ $user->role === $role ? 'selected' : '' }}>
-                                                                    {{ $role->label() }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                </div>
-
-                                                <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
-                                                    <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-edit-user-{{ $user->id }}">
-                                                        取消
-                                                    </button>
-                                                    <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
-                                                        保存变更
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-
-                                    <!-- 重置密码 Modal (彻底消除文字突兀崩溃，优雅高保真) -->
-                                    <div id="hs-modal-reset-password-{{ $user->id }}" class="hs-overlay hidden fixed inset-0 z-70 overflow-x-hidden overflow-y-auto bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-                                        <div class="hs-overlay-open:opacity-100 hs-overlay-open:scale-100 opacity-0 scale-95 transition-all duration-200 w-full max-w-md bg-white dark:bg-[#202020] rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-2xl overflow-hidden">
-                                            <!-- 头部 -->
-                                            <div class="px-6 py-5 border-b border-stone-200/60 dark:border-stone-800/80 flex items-start justify-between gap-4">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700">
-                                                        <i class="bi bi-key text-base"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                                                            重置登录密码
-                                                        </h3>
-                                                        <p class="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                                                            正在为成员「{{ $user->name }}」更新访问口令
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <button type="button" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1" data-hs-overlay="#hs-modal-reset-password-{{ $user->id }}">
-                                                    <i class="bi bi-x-lg text-xs"></i>
+                                            <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
+                                                <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-edit-user-{{ $user->id }}">
+                                                    取消
+                                                </button>
+                                                <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
+                                                    保存变更
                                                 </button>
                                             </div>
+                                        </form>
+                                    </x-admin::modal>
 
-                                            <form method="POST" action="{{ route('admin.users.reset-password', $user) }}">
-                                                @csrf
-                                                <div class="p-6 space-y-4 text-xs">
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">新密码 <span class="text-rose-500">*</span></label>
-                                                        <input type="password" name="password" required minlength="8" placeholder="至少 8 位，须包含字母与数字" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">确认新密码 <span class="text-rose-500">*</span></label>
-                                                        <input type="password" name="password_confirmation" required minlength="8" placeholder="再次输入新密码核对" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                                    </div>
-                                                    <div class="p-2.5 rounded-lg bg-stone-100/60 dark:bg-stone-800/40 border border-stone-200/60 dark:border-stone-700/50 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
-                                                        <i class="bi bi-shield-check text-emerald-600"></i>
-                                                        <span>密码修改操作将在审计日志中记录，明文密码强制脱敏</span>
-                                                    </div>
+                                    <!-- 重置密码 Modal -->
+                                    <x-admin::modal id="hs-modal-reset-password-{{ $user->id }}" title="重置登录密码" :subtitle="'正在为成员「' . $user->name . '」更新访问口令'" icon="bi-key">
+                                        <form method="POST" action="{{ route('admin.users.reset-password', $user) }}">
+                                            @csrf
+                                            <div class="p-6 space-y-4 text-xs">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">新密码 <span class="text-rose-500">*</span></label>
+                                                    <input type="password" name="password" required minlength="8" placeholder="至少 8 位，须包含字母与数字" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
                                                 </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">确认新密码 <span class="text-rose-500">*</span></label>
+                                                    <input type="password" name="password_confirmation" required minlength="8" placeholder="再次输入新密码核对" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                                                </div>
+                                                <div class="p-2.5 rounded-lg bg-stone-100/60 dark:bg-stone-800/40 border border-stone-200/60 dark:border-stone-700/50 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
+                                                    <i class="bi bi-shield-check text-emerald-600"></i>
+                                                    <span>密码修改操作将在审计日志中记录，明文密码强制脱敏</span>
+                                                </div>
+                                            </div>
 
-                                                <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
-                                                    <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-reset-password-{{ $user->id }}">
-                                                        取消
-                                                    </button>
-                                                    <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
-                                                        确认重置
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
+                                            <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
+                                                <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-reset-password-{{ $user->id }}">
+                                                    取消
+                                                </button>
+                                                <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
+                                                    确认重置
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </x-admin::modal>
                                 @endcan
 
-                                <!-- 启停状态高保真确认 Modal (消灭原生丑陋 confirm 弹窗) -->
+                                <!-- 启停状态二次确认 -->
                                 @can('toggleStatus', $user)
-                                    <div id="hs-modal-confirm-toggle-{{ $user->id }}" class="hs-overlay hidden fixed inset-0 z-70 overflow-x-hidden overflow-y-auto bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-                                        <div class="hs-overlay-open:opacity-100 hs-overlay-open:scale-100 opacity-0 scale-95 transition-all duration-200 w-full max-w-sm bg-white dark:bg-[#202020] rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-2xl p-6 text-center space-y-4">
-                                            <div class="w-12 h-12 rounded-full {{ $user->is_active ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' }} flex items-center justify-center mx-auto text-xl">
-                                                <i class="bi {{ $user->is_active ? 'bi-pause-circle' : 'bi-play-circle' }}"></i>
-                                            </div>
-
-                                            <div class="space-y-1">
-                                                <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                                                    确认{{ $user->is_active ? '停用' : '启用' }}成员账号？
-                                                </h3>
-                                                <p class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-                                                    您正在操作成员「<strong>{{ $user->name }}</strong>」。{{ $user->is_active ? '停用后该成员将无法登录后台，已建立的会话将被即时强退。' : '启用后将恢复该成员的所有后台访问与操作权限。' }}
-                                                </p>
-                                            </div>
-
-                                            <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}" class="flex items-center justify-center gap-2.5 pt-1">
-                                                @csrf
-                                                <button type="button" class="w-full px-4 py-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 text-xs font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-confirm-toggle-{{ $user->id }}">
-                                                    取消
-                                                </button>
-                                                <button type="submit" class="w-full px-4 py-2 rounded-lg {{ $user->is_active ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }} text-xs font-medium transition-colors shadow-xs">
-                                                    确认{{ $user->is_active ? '停用' : '启用' }}
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
+                                    <x-admin::confirm-dialog
+                                        id="hs-modal-confirm-toggle-{{ $user->id }}"
+                                        :action="route('admin.users.toggle-active', $user)"
+                                        :title="'确认' . ($user->is_active ? '停用' : '启用') . '成员账号？'"
+                                        :message="'您正在操作成员「<strong>' . e($user->name) . '</strong>」。' . ($user->is_active ? '停用后该成员将无法登录后台，已建立的会话将被即时强退。' : '启用后将恢复该成员的所有后台访问与操作权限。')"
+                                        :confirmText="'确认' . ($user->is_active ? '停用' : '启用')"
+                                        :confirmColor="$user->is_active ? 'amber' : 'emerald'"
+                                        :icon="$user->is_active ? 'bi-pause-circle' : 'bi-play-circle'"
+                                    />
                                 @endcan
 
-                                <!-- 删除成员高保真危险确认 Modal (消灭原生 confirm) -->
+                                <!-- 删除成员二次确认 -->
                                 @can('delete', $user)
-                                    <div id="hs-modal-confirm-delete-{{ $user->id }}" class="hs-overlay hidden fixed inset-0 z-70 overflow-x-hidden overflow-y-auto bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-                                        <div class="hs-overlay-open:opacity-100 hs-overlay-open:scale-100 opacity-0 scale-95 transition-all duration-200 w-full max-w-sm bg-white dark:bg-[#202020] rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-2xl p-6 text-center space-y-4">
-                                            <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl">
-                                                <i class="bi bi-exclamation-triangle"></i>
-                                            </div>
-
-                                            <div class="space-y-1">
-                                                <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                                                    确认永久删除该成员？
-                                                </h3>
-                                                <p class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-                                                    成员「<strong>{{ $user->name }}</strong>」的账号数据将被彻底移除，此操作<strong>无法撤销</strong>。
-                                                </p>
-                                            </div>
-
-                                            <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="flex items-center justify-center gap-2.5 pt-1">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button" class="w-full px-4 py-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 text-xs font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-confirm-delete-{{ $user->id }}">
-                                                    取消
-                                                </button>
-                                                <button type="submit" class="w-full px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors shadow-xs">
-                                                    确认永久删除
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
+                                    <x-admin::confirm-dialog
+                                        id="hs-modal-confirm-delete-{{ $user->id }}"
+                                        :action="route('admin.users.destroy', $user)"
+                                        method="DELETE"
+                                        title="确认永久删除该成员？"
+                                        :message="'成员「<strong>' . e($user->name) . '</strong>」的账号数据将被彻底移除，此操作<strong>无法撤销</strong>。'"
+                                        confirmText="确认永久删除"
+                                        confirmColor="rose"
+                                        icon="bi-exclamation-triangle"
+                                    />
                                 @endcan
                             @empty
                                 <tr>
@@ -480,71 +392,49 @@
         @endif
     </div>
 
-    <!-- 添加成员 Modal (Nordic Minimal 精致高保真) -->
+    <!-- 添加成员 Modal -->
     @can('create', \AdminFlow\Core\Models\User::class)
-        <div id="hs-modal-create-user" class="hs-overlay hidden fixed inset-0 z-70 overflow-x-hidden overflow-y-auto bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="hs-overlay-open:opacity-100 hs-overlay-open:scale-100 opacity-0 scale-95 transition-all duration-200 w-full max-w-md bg-white dark:bg-[#202020] rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-2xl overflow-hidden">
-                <!-- 头部 -->
-                <div class="px-6 py-5 border-b border-stone-200/60 dark:border-stone-800/80 flex items-start justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700">
-                            <i class="bi bi-person-plus text-base"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                                添加系统新成员
-                            </h3>
-                            <p class="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                                为协作者分配访问账号与代码预设角色
-                            </p>
-                        </div>
+        <x-admin::modal id="hs-modal-create-user" title="添加系统新成员" subtitle="为协作者分配访问账号与代码预设角色" icon="bi-person-plus">
+            <form method="POST" action="{{ route('admin.users.store') }}">
+                @csrf
+                <div class="p-6 space-y-4 text-xs">
+                    <div>
+                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">成员姓名 <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="输入成员姓名" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
                     </div>
-                    <button type="button" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1" data-hs-overlay="#hs-modal-create-user">
-                        <i class="bi bi-x-lg text-xs"></i>
-                    </button>
+                    <div>
+                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">登录邮箱 <span class="text-rose-500">*</span></label>
+                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="user@example.com" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">初始登录密码 <span class="text-rose-500">*</span></label>
+                        <input type="password" name="password" required minlength="8" placeholder="至少 8 位，包含英文字母与数字" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">预设角色分配 <span class="text-rose-500">*</span></label>
+                        <select name="role" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                            @foreach($roles as $role)
+                                <option value="{{ $role->value }}" {{ old('role') === $role->value ? 'selected' : '' }}>
+                                    {{ $role->label() }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <input type="checkbox" id="create-is-active" name="is_active" value="1" checked class="rounded border-stone-300 text-stone-900 focus:ring-stone-500">
+                        <label for="create-is-active" class="text-xs text-stone-700 dark:text-stone-300">创建后立即允许登录后台</label>
+                    </div>
                 </div>
 
-                <form method="POST" action="{{ route('admin.users.store') }}">
-                    @csrf
-                    <div class="p-6 space-y-4 text-xs">
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">成员姓名 <span class="text-rose-500">*</span></label>
-                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="输入成员姓名" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">登录邮箱 <span class="text-rose-500">*</span></label>
-                            <input type="email" name="email" value="{{ old('email') }}" required placeholder="user@example.com" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">初始登录密码 <span class="text-rose-500">*</span></label>
-                            <input type="password" name="password" required minlength="8" placeholder="至少 8 位，包含英文字母与数字" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">预设角色分配 <span class="text-rose-500">*</span></label>
-                            <select name="role" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                @foreach($roles as $role)
-                                    <option value="{{ $role->value }}" {{ old('role') === $role->value ? 'selected' : '' }}>
-                                        {{ $role->label() }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2 pt-1">
-                            <input type="checkbox" id="create-is-active" name="is_active" value="1" checked class="rounded border-stone-300 text-stone-900 focus:ring-stone-500">
-                            <label for="create-is-active" class="text-xs text-stone-700 dark:text-stone-300">创建后立即允许登录后台</label>
-                        </div>
-                    </div>
-
-                    <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
-                        <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-create-user">
-                            取消
-                        </button>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
-                            立即创建
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-create-user">
+                        取消
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
+                        立即创建
+                    </button>
+                </div>
+            </form>
+        </x-admin::modal>
     @endcan
 @endsection

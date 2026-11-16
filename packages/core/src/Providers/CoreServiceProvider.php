@@ -12,6 +12,7 @@ use AdminFlow\Core\Services\AuditLogger;
 use AdminFlow\Core\Services\UserService;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -50,6 +51,9 @@ class CoreServiceProvider extends ServiceProvider
 
         // 设置全系统默认分页视图 (深度适配 Nordic Minimal 深浅色模式)
         Paginator::defaultView('adminflow-core::pagination.nordic');
+
+        // 注册后台通用 Blade 组件命名空间 (使用 <x-admin::组件名>)
+        Blade::anonymousComponentPath(__DIR__ . '/../../resources/views/components', 'admin');
 
         // 注册中间件别名
         $router->aliasMiddleware('admin.auth', AuthenticateAdmin::class);

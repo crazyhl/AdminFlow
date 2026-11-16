@@ -5,59 +5,21 @@
 
 @section('content')
     <!-- 问候与核心心智 -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="space-y-1">
-            <h1 class="text-2xl font-serif-nordic font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                午后好，系统运行平稳。
-            </h1>
-            <p class="text-xs text-stone-500 dark:text-stone-400">
-                AdminFlow 通用后台底座护航中 · 具备完整版本并发保护（409 防覆盖）与服务端权限策略隔离。
-            </p>
-        </div>
-
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs font-mono">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>微内核服务就绪 · 健康度 100%</span>
-        </div>
-    </div>
+    <x-admin::page-header title="午后好，系统运行平稳。" description="AdminFlow 通用后台底座护航中 · 具备完整版本并发保护（409 防覆盖）与服务端权限策略隔离。">
+        <x-slot:actions>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs font-mono">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>微内核服务就绪 · 健康度 100%</span>
+            </div>
+        </x-slot:actions>
+    </x-admin::page-header>
 
     <!-- 扁平数字指标 (全宽横向自适应排印) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 py-5 border-y border-stone-200/60 dark:border-stone-800">
-        <div>
-            <div class="text-xs text-stone-400 dark:text-stone-500">已沉淀文章</div>
-            <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">42</div>
-            <div class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 flex items-center gap-1 font-mono">
-                <i class="bi bi-check2"></i> 38 篇已发布 · 4 篇草稿
-            </div>
-        </div>
-
-        <div>
-            <div class="text-xs text-stone-400 dark:text-stone-500">待审核评论</div>
-            <div class="text-3xl font-serif-nordic font-bold text-amber-700 dark:text-amber-400 mt-1">7</div>
-            <div class="text-[11px] text-stone-400 dark:text-stone-500 mt-1 font-mono">
-                三层树形嵌套 · 防 XSS 注入
-            </div>
-        </div>
-
-        <div>
-            <div class="text-xs text-stone-400 dark:text-stone-500">媒体库占用</div>
-            <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">
-                1.2 <span class="text-sm font-sans font-normal text-stone-400">GB</span>
-            </div>
-            <div class="text-[11px] text-stone-400 dark:text-stone-500 mt-1 font-mono">
-                186 张高清图床资源
-            </div>
-        </div>
-
-        <div>
-            <div class="text-xs text-stone-400 dark:text-stone-500">累计操作审计</div>
-            <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">
-                {{ $stats['audit_count'] ?? 0 }}
-            </div>
-            <div class="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1 font-mono">
-                敏感口令强制脱敏落库
-            </div>
-        </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <x-admin::stat-card label="已沉淀文章" value="42" subtext="38 篇已发布 · 4 篇草稿" color="stone" />
+        <x-admin::stat-card label="待审核评论" value="7" subtext="三层树形嵌套 · 防 XSS 注入" color="amber" />
+        <x-admin::stat-card label="媒体库占用" value="1.2 GB" subtext="186 张高清图床资源" color="stone" />
+        <x-admin::stat-card label="累计操作审计" :value="$stats['audit_count'] ?? 0" subtext="敏感口令强制脱敏落库" color="emerald" />
     </div>
 
     <!-- 主体双栏工作台布局 (12 列网格：8 列核心流水 + 4 列右侧快捷工具与系统规格) -->
