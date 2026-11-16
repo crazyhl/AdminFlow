@@ -55,6 +55,11 @@ class AuthGatewayTest extends TestCase
         $this->assertTrue(Auth::guard('admin')->check());
         $this->assertSame($user->id, Auth::guard('admin')->id());
 
+        // 验证真实 Session 下访问受 Gate 保护的用户管理路由不会报 403
+        $usersResponse = $this->get(route('admin.users.index'));
+        $usersResponse->assertOk();
+        $usersResponse->assertSee('成员与权限管理');
+
         // 验证登录审计日志
         $this->assertDatabaseHas('adminflow_audit_logs', [
             'action' => 'auth.login_success',

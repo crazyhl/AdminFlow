@@ -23,6 +23,8 @@ class AuthenticateAdmin
             return redirect()->guest(route('admin.login'));
         }
 
+        Auth::shouldUse('admin');
+
         $user = Auth::guard('admin')->user();
 
         // 会话有效性与账号状态二次核验：若账号在会话期间被管理员停用，立即强退
