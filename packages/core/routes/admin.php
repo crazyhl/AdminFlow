@@ -15,9 +15,14 @@ Route::prefix('admin')
         // 受保护的后台路由
         Route::middleware(['admin.auth'])->group(function (): void {
             Route::get('/', function () {
-                $auditLogs = \AdminFlow\Core\Models\AuditLog::query()->with('user')->latest('id')->take(5)->get();
+                $auditLogs = \AdminFlow\Core\Models\AuditLog::query()->with('user')->latest('id')->take(8)->get();
+                $stats = [
+                    'users_count' => \AdminFlow\Core\Models\User::query()->count(),
+                    'active_users_count' => \AdminFlow\Core\Models\User::query()->where('is_active', true)->count(),
+                    'audit_count' => \AdminFlow\Core\Models\AuditLog::query()->count(),
+                ];
 
-                return view('adminflow-core::dashboard', compact('auditLogs'));
+                return view('adminflow-core::dashboard', compact('auditLogs', 'stats'));
             })->name('admin.dashboard');
 
             // 成员与用户管理
