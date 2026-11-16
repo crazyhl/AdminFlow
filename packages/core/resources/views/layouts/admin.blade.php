@@ -308,8 +308,8 @@
             @endif
         </div>
 
-        <!-- 页面主体容器 -->
-        <main class="p-8 max-w-5xl space-y-8">
+        <!-- 页面主体容器 (全宽响应式展开，消除右侧突兀空白) -->
+        <main class="@yield('main_class', 'p-6 lg:p-8 w-full space-y-8')">
             @yield('content')
         </main>
     </div>

@@ -29,5 +29,22 @@ Route::prefix('admin')
                 Route::post('/{user}/reset-password', [UserController::class, 'resetPassword'])->name('reset-password');
                 Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
             });
+
+            // 布局方案选型对比预览 (供用户直观审阅方案 A 与方案 B)
+            Route::prefix('preview')->name('admin.preview.')->group(function (): void {
+                Route::get('layout-a', function () {
+                    $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
+                    $roles = \AdminFlow\Core\Enums\Role::cases();
+
+                    return view('adminflow-core::preview.layout_a', compact('users', 'roles'));
+                })->name('layout-a');
+
+                Route::get('layout-b', function () {
+                    $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
+                    $roles = \AdminFlow\Core\Enums\Role::cases();
+
+                    return view('adminflow-core::preview.layout_b', compact('users', 'roles'));
+                })->name('layout-b');
+            });
         });
     });

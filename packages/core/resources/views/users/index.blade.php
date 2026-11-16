@@ -4,6 +4,22 @@
 @section('breadcrumb', '成员列表与授权')
 
 @section('content')
+    <!-- 布局选型快捷入口 (供用户直观对比方案 A 与方案 B) -->
+    <div class="p-3 bg-stone-100/80 dark:bg-stone-800/60 rounded-xl border border-stone-200/80 dark:border-stone-700/60 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+        <div class="flex items-center gap-2 text-stone-600 dark:text-stone-300">
+            <i class="bi bi-layout-split text-stone-500"></i>
+            <span class="font-medium">大屏排版与留白优化选型测试：</span>
+        </div>
+        <div class="flex items-center gap-2 font-mono text-[11px]">
+            <a href="{{ route('admin.preview.layout-a') }}" class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#202020] text-stone-800 dark:text-stone-200 shadow-2xs border border-stone-200 dark:border-stone-700 font-medium hover:border-stone-400 transition-colors">
+                预览方案 A (流式全宽 + 饱满卡片) →
+            </a>
+            <a href="{{ route('admin.preview.layout-b') }}" class="px-2.5 py-1 rounded-lg bg-white dark:bg-[#202020] text-stone-800 dark:text-stone-200 shadow-2xs border border-stone-200 dark:border-stone-700 font-medium hover:border-stone-400 transition-colors">
+                预览方案 B (双栏工作台 + 规则字典) →
+            </a>
+        </div>
+    </div>
+
     <!-- 标题与新增按钮 -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="space-y-1">
