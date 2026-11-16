@@ -4,18 +4,33 @@
 @section('breadcrumb', '成员列表与授权')
 
 @section('content')
-    <!-- 主体双栏工作台布局 (12 列网格：8 列核心列表与操作 + 4 列右侧权限规则与安全字典) -->
-    <div class="w-full grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        <!-- 左侧 8 列：成员核心数据管理区 -->
-        <div class="xl:col-span-8 space-y-6">
-            <!-- 标题与新增按钮 -->
+    @php
+        $currentLayout = request('layout', 'b');
+    @endphp
+
+    <!-- 主体工作台布局 (支持在方案 A 全宽与方案 B 双栏之间实时切换) -->
+    <div class="w-full grid grid-cols-1 {{ $currentLayout === 'b' ? 'xl:grid-cols-12' : '' }} gap-8 items-start">
+        <!-- 核心数据管理区：方案 B 下占 8 列，方案 A 下全宽 12 列展开 -->
+        <div class="{{ $currentLayout === 'b' ? 'xl:col-span-8' : 'w-full' }} space-y-6">
+            <!-- 标题、布局切换胶囊与新增按钮 -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="space-y-1">
-                    <h1 class="text-2xl font-serif-nordic font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
-                        成员与权限管理
-                    </h1>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl font-serif-nordic font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
+                            成员与权限管理
+                        </h1>
+                        <!-- 方案切换胶囊 -->
+                        <div class="inline-flex items-center p-0.5 rounded-lg bg-stone-200/60 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-[11px] font-mono">
+                            <a href="{{ request()->fullUrlWithQuery(['layout' => 'b']) }}" class="px-2 py-0.5 rounded-md transition-colors {{ $currentLayout === 'b' ? 'bg-white dark:bg-[#202020] text-stone-900 dark:text-stone-100 shadow-2xs font-semibold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300' }}" title="切换至双栏工作台布局">
+                                方案 B (双栏工作台)
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['layout' => 'a']) }}" class="px-2 py-0.5 rounded-md transition-colors {{ $currentLayout === 'a' ? 'bg-white dark:bg-[#202020] text-stone-900 dark:text-stone-100 shadow-2xs font-semibold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300' }}" title="切换至流式全宽布局">
+                                方案 A (流式全宽)
+                            </a>
+                        </div>
+                    </div>
                     <p class="text-xs text-stone-500 dark:text-stone-400">
-                        管理系统协同成员、配置预设角色与启停访问权限 · 服务端策略严格校验。
+                        管理系统协同成员、配置预设角色与启停访问权限 · 点击上方胶囊可即时切换排版形态。
                     </p>
                 </div>
 
@@ -90,7 +105,7 @@
             </form>
 
             <!-- 成员数据表格卡片 -->
-            <div class="bg-white dark:bg-[#202020] rounded-xl border border-stone-200/70 dark:border-stone-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors duration-150">
+            <div class="bg-white dark:bg-[#202020] rounded-xl border border-stone-200/70 dark:border-stone-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors duration-150 {{ $currentLayout === 'a' ? 'min-h-[460px] flex flex-col justify-between' : '' }}">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs text-stone-700 dark:text-stone-300 divide-y divide-stone-100 dark:divide-stone-800">
                         <thead class="bg-stone-50/60 dark:bg-stone-900/40 text-[11px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wider">
@@ -299,80 +314,82 @@
             </div>
         </div>
 
-        <!-- 右侧 4 列：常驻权限规则字典与安全控制规范 (彻底消除大屏断崖留白) -->
-        <div class="xl:col-span-4 space-y-6">
-            <!-- 预设角色与权限范围字典 -->
-            <div class="bg-white dark:bg-[#202020] p-5 rounded-xl border border-stone-200/70 dark:border-stone-800 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-colors duration-150">
-                <div class="flex items-center justify-between border-b border-stone-200/60 dark:border-stone-800 pb-3">
+        <!-- 右侧 4 列：常驻权限规则字典与安全控制规范 (仅在方案 B 双栏模式下呈现) -->
+        @if($currentLayout === 'b')
+            <div class="xl:col-span-4 space-y-6">
+                <!-- 预设角色与权限范围字典 -->
+                <div class="bg-white dark:bg-[#202020] p-5 rounded-xl border border-stone-200/70 dark:border-stone-800 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-colors duration-150">
+                    <div class="flex items-center justify-between border-b border-stone-200/60 dark:border-stone-800 pb-3">
+                        <div class="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                            <i class="bi bi-shield-shaded text-sm text-stone-700 dark:text-stone-300"></i>
+                            <span>预设角色与权限字典</span>
+                        </div>
+                        <span class="text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-500 px-1.5 py-0.5 rounded font-mono">严格守卫</span>
+                    </div>
+
+                    <div class="space-y-3.5 text-xs">
+                        <!-- 超级管理员 -->
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-stone-900 dark:text-stone-100 text-[11px]">超级管理员 (Super Admin)</span>
+                                <span class="text-[10px] text-stone-400 font-mono">全权放行</span>
+                            </div>
+                            <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                                拥有底座所有管理权、用户启停/重置、系统配置、审计日志与 CMS 全量发布特权；具备免拦截防御。
+                            </p>
+                        </div>
+
+                        <div class="h-px bg-stone-100 dark:bg-stone-800"></div>
+
+                        <!-- 内容编辑员 -->
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-amber-800 dark:text-amber-300 text-[11px]">内容编辑员 (Editor)</span>
+                                <span class="text-[10px] text-amber-600 font-mono">CMS 核心</span>
+                            </div>
+                            <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                                专用于创作工坊：文章创建/编辑/草稿发布、媒体图床上传管理、访客评论审核；不可管理系统用户与底层安全。
+                            </p>
+                        </div>
+
+                        <div class="h-px bg-stone-100 dark:bg-stone-800"></div>
+
+                        <!-- 只读访客 -->
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-stone-700 dark:text-stone-300 text-[11px]">只读访客 (Viewer)</span>
+                                <span class="text-[10px] text-stone-400 font-mono">受限只读</span>
+                            </div>
+                            <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                                仅能查看仪表盘概要和已公开内容数据，无任何写入或状态变更权限。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 安全控制与防自损规范 -->
+                <div class="bg-[#f7f6f3] dark:bg-[#202020] p-5 rounded-xl border border-stone-200/70 dark:border-stone-800 space-y-3.5 text-xs transition-colors duration-150">
                     <div class="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                        <i class="bi bi-shield-shaded text-sm text-stone-700 dark:text-stone-300"></i>
-                        <span>预设角色与权限字典</span>
+                        <i class="bi bi-lock text-sm text-stone-600 dark:text-stone-400"></i>
+                        <span>安全控制与防自损规范</span>
                     </div>
-                    <span class="text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-500 px-1.5 py-0.5 rounded font-mono">严格守卫</span>
-                </div>
-
-                <div class="space-y-3.5 text-xs">
-                    <!-- 超级管理员 -->
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="font-medium text-stone-900 dark:text-stone-100 text-[11px]">超级管理员 (Super Admin)</span>
-                            <span class="text-[10px] text-stone-400 font-mono">全权放行</span>
+                    <div class="space-y-2 text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2 text-emerald-600 shrink-0 mt-0.5"></i>
+                            <span><strong>防自我停用</strong>：操作者无论权限多高，绝对禁止停用当前登录账号。</span>
                         </div>
-                        <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
-                            拥有底座所有管理权、用户启停/重置、系统配置、审计日志与 CMS 全量发布特权；具备免拦截防御。
-                        </p>
-                    </div>
-
-                    <div class="h-px bg-stone-100 dark:bg-stone-800"></div>
-
-                    <!-- 内容编辑员 -->
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="font-medium text-amber-800 dark:text-amber-300 text-[11px]">内容编辑员 (Editor)</span>
-                            <span class="text-[10px] text-amber-600 font-mono">CMS 核心</span>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2 text-emerald-600 shrink-0 mt-0.5"></i>
+                            <span><strong>防自删与防删超管</strong>：超级管理员账号受核心 Policy 硬保护，防止系统失联。</span>
                         </div>
-                        <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
-                            专用于创作工坊：文章创建/编辑/草稿发布、媒体图床上传管理、访客评论审核；不可管理系统用户与底层安全。
-                        </p>
-                    </div>
-
-                    <div class="h-px bg-stone-100 dark:bg-stone-800"></div>
-
-                    <!-- 只读访客 -->
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="font-medium text-stone-700 dark:text-stone-300 text-[11px]">只读访客 (Viewer)</span>
-                            <span class="text-[10px] text-stone-400 font-mono">受限只读</span>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2 text-emerald-600 shrink-0 mt-0.5"></i>
+                            <span><strong>敏感参数脱敏</strong>：重置密码与修改操作在审计日志中自动脱敏，不存明文。</span>
                         </div>
-                        <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
-                            仅能查看仪表盘概要和已公开内容数据，无任何写入或状态变更权限。
-                        </p>
                     </div>
                 </div>
             </div>
-
-            <!-- 安全控制与防自损规范 -->
-            <div class="bg-[#f7f6f3] dark:bg-[#202020] p-5 rounded-xl border border-stone-200/70 dark:border-stone-800 space-y-3.5 text-xs transition-colors duration-150">
-                <div class="text-xs font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                    <i class="bi bi-lock text-sm text-stone-600 dark:text-stone-400"></i>
-                    <span>安全控制与防自损规范</span>
-                </div>
-                <div class="space-y-2 text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
-                    <div class="flex items-start gap-2">
-                        <i class="bi bi-check2 text-emerald-600 shrink-0 mt-0.5"></i>
-                        <span><strong>防自我停用</strong>：操作者无论权限多高，绝对禁止停用当前登录账号。</span>
-                    </div>
-                    <div class="flex items-start gap-2">
-                        <i class="bi bi-check2 text-emerald-600 shrink-0 mt-0.5"></i>
-                        <span><strong>防自删与防删超管</strong>：超级管理员账号受核心 Policy 硬保护，防止系统失联。</span>
-                    </div>
-                    <div class="flex items-start gap-2">
-                        <i class="bi bi-check2 text-emerald-600 shrink-0 mt-0.5"></i>
-                        <span><strong>敏感参数脱敏</strong>：重置密码与修改操作在审计日志中自动脱敏，不存明文。</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endif
     </div>
 
     <!-- 添加成员 Modal -->
