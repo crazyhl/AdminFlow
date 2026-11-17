@@ -297,4 +297,140 @@ class UserControllerTest extends TestCase
         $responseSelf = $this->actingAs($this->admin, 'admin')->delete(route('admin.users.destroy', $this->admin));
         $responseSelf->assertForbidden();
     }
+
+    public function test_htmx_create_user_success_triggers_toast(): void
+    {
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.store'), [
+                'name' => 'HTMX成员',
+                'email' => 'htmx@adminflow.test',
+                'password' => 'HtmxPass2026',
+                'role' => Role::EDITOR->value,
+                'is_active' => '1',
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('HX-Refresh', 'true');
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('showToast', (string) $response->headers->get('HX-Trigger'));
+        $this->assertDatabaseHas('adminflow_users', ['email' => 'htmx@adminflow.test']);
+    }
+
+    public function test_htmx_create_user_validation_error_renders_create_form_partial(): void
+    {
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.store'), [
+                'name' => '',
+                'email' => 'invalid-email',
+                'password' => 'short',
+                'role' => 'invalid-role',
+            ]);
+
+        $response->assertOk();
+        $response->assertViewIs('adminflow-core::users.partials.create-form');
+        $response->assertSee('请输入成员姓名');
+        $response->assertSee('邮箱格式不符合规范');
+    }
+
+    public function test_htmx_update_user_validation_error_renders_edit_form_partial(): void
+    {
+        $target = User::create([
+            'name' => '原有用户',
+            'email' => 'existing@adminflow.test',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->withHeader('HX-Request', 'true')->put(
+            route('admin.users.update', $target),
+            [
+                'name' => '',
+                'email' => 'admin@adminflow.test', // 占用超管邮箱
+                'role' => Role::VIEWER->value,
+            ],
+        );
+
+        $response->assertOk();
+        $response->assertViewIs('adminflow-core::users.partials.edit-form');
+        $response->assertSee('该邮箱已被其他成员占用');
+    }
+
+    public function test_htmx_reset_password_success_triggers_toast(): void
+    {
+        $target = User::create([
+            'name' => '密码目标',
+            'email' => 'pwd_target@adminflow.test',
+            'password' => 'OldPass123456',
+            'role' => Role::EDITOR,
+            'is_active' => true,
+        ]);
+
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.reset-password', $target), [
+                'password' => 'NewStrongPass2026',
+                'password_confirmation' => 'NewStrongPass2026',
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('HX-Refresh', 'true');
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('showToast', (string) $response->headers->get('HX-Trigger'));
+        $this->assertTrue(Hash::check('NewStrongPass2026', $target->fresh()->password));
+    }
+
+    public function test_htmx_update_user_success_triggers_toast(): void
+    {
+        $target = User::create([
+            'name' => '待更新目标',
+            'email' => 'to_update@adminflow.test',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_active' => true,
+        ]);
+
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->put(route('admin.users.update', $target), [
+                'name' => '已改名成员',
+                'email' => 'updated_email@adminflow.test',
+                'role' => Role::EDITOR->value,
+            ]);
+
+        $response->assertOk();
+        $response->assertHeader('HX-Refresh', 'true');
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('showToast', (string) $response->headers->get('HX-Trigger'));
+        $this->assertSame('已改名成员', $target->fresh()->name);
+    }
+
+    public function test_htmx_reset_password_mismatched_renders_partial_with_errors(): void
+    {
+        $target = User::create([
+            'name' => '密码目标2',
+            'email' => 'pwd_target2@adminflow.test',
+            'password' => 'OldPass123456',
+            'role' => Role::EDITOR,
+            'is_active' => true,
+        ]);
+
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.reset-password', $target), [
+                'password' => 'NewStrongPass2026',
+                'password_confirmation' => 'MismatchedPass2026',
+            ]);
+
+        $response->assertOk();
+        $response->assertViewIs('adminflow-core::users.partials.reset-password-form');
+        $response->assertSee('两次输入的新密码不一致，请重新核对');
+    }
 }

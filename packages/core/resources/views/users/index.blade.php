@@ -300,82 +300,14 @@
     <!-- 成员操作相关的所有 Modal 容器 (置于 table 外部，符合 HTML5 规范，杜绝 DOM 错乱) -->
     @foreach($users as $user)
         @can('update', $user)
-            <!-- 编辑成员 Modal -->
+            <!-- 编辑成员 Modal (使用 htmx 局部提交校验) -->
             <x-admin::modal id="hs-modal-edit-user-{{ $user->id }}" title="编辑成员资料" subtitle="更新成员姓名、登录邮箱与分配的系统角色" icon="bi-person-gear">
-                <form method="POST" action="{{ route('admin.users.update', $user) }}">
-                    @csrf
-                    @method('PUT')
-                    <div class="p-6 space-y-4 text-xs">
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">成员姓名 <span class="text-rose-500">*</span></label>
-                            <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">登录邮箱 <span class="text-rose-500">*</span></label>
-                            <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">预设角色分配 <span class="text-rose-500">*</span></label>
-                            <select name="role" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                @foreach($roles as $role)
-                                    <option value="{{ $role->value }}" {{ $user->role === $role ? 'selected' : '' }}>
-                                        {{ $role->label() }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
-                        <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-edit-user-{{ $user->id }}">
-                            取消
-                        </button>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
-                            保存变更
-                        </button>
-                    </div>
-                </form>
+                @include('adminflow-core::users.partials.edit-form', ['user' => $user, 'roles' => $roles])
             </x-admin::modal>
 
-            <!-- 重置密码 Modal (彻底消除不一致重置风险) -->
+            <!-- 重置密码 Modal (使用 htmx 局部提交校验) -->
             <x-admin::modal id="hs-modal-reset-password-{{ $user->id }}" title="重置登录密码" :subtitle="'正在为成员「' . $user->name . '」更新访问口令'" icon="bi-key">
-                <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" class="reset-password-form">
-                    @csrf
-                    <div class="p-6 space-y-4 text-xs">
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">新密码 <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <input type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="至少 8 位，须包含字母与数字" class="w-full px-3.5 py-2 pe-9 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                <button type="button" onclick="togglePasswordVisibility(this)" class="absolute inset-y-0 end-0 flex items-center pe-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
-                                    <i class="bi bi-eye text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">确认新密码 <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <input type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" placeholder="再次输入新密码核对" class="w-full px-3.5 py-2 pe-9 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                                <button type="button" onclick="togglePasswordVisibility(this)" class="absolute inset-y-0 end-0 flex items-center pe-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
-                                    <i class="bi bi-eye text-xs"></i>
-                                </button>
-                            </div>
-                            <div class="password-match-feedback text-[11px] font-mono mt-1 hidden"></div>
-                        </div>
-                        <div class="p-2.5 rounded-lg bg-stone-100/60 dark:bg-stone-800/40 border border-stone-200/60 dark:border-stone-700/50 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
-                            <i class="bi bi-shield-check text-emerald-600"></i>
-                            <span>密码修改操作将在审计日志中记录，明文密码强制脱敏</span>
-                        </div>
-                    </div>
-
-                    <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
-                        <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-reset-password-{{ $user->id }}">
-                            取消
-                        </button>
-                        <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
-                            确认重置
-                        </button>
-                    </div>
-                </form>
+                @include('adminflow-core::users.partials.reset-password-form', ['user' => $user])
             </x-admin::modal>
         @endcan
 
@@ -409,46 +341,7 @@
 
     @can('create', \AdminFlow\Core\Models\User::class)
         <x-admin::modal id="hs-modal-create-user" title="添加系统新成员" subtitle="为协作者分配访问账号与代码预设角色" icon="bi-person-plus">
-            <form method="POST" action="{{ route('admin.users.store') }}">
-                @csrf
-                <div class="p-6 space-y-4 text-xs">
-                    <div>
-                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">成员姓名 <span class="text-rose-500">*</span></label>
-                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="输入成员姓名" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">登录邮箱 <span class="text-rose-500">*</span></label>
-                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="user@example.com" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">初始登录密码 <span class="text-rose-500">*</span></label>
-                        <input type="password" name="password" required minlength="8" placeholder="至少 8 位，包含英文字母与数字" class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">预设角色分配 <span class="text-rose-500">*</span></label>
-                        <select name="role" required class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                            @foreach($roles as $role)
-                                <option value="{{ $role->value }}" {{ old('role') === $role->value ? 'selected' : '' }}>
-                                    {{ $role->label() }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2 pt-1">
-                        <input type="checkbox" id="create-is-active" name="is_active" value="1" checked class="rounded border-stone-300 text-stone-900 focus:ring-stone-500">
-                        <label for="create-is-active" class="text-xs text-stone-700 dark:text-stone-300">创建后立即允许登录后台</label>
-                    </div>
-                </div>
-
-                <div class="px-6 py-3.5 bg-stone-50/60 dark:bg-stone-900/40 border-t border-stone-200/60 dark:border-stone-800/80 flex items-center justify-end gap-2.5">
-                    <button type="button" class="px-3.5 py-2 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#hs-modal-create-user">
-                        取消
-                    </button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 text-xs font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs">
-                        立即创建
-                    </button>
-                </div>
-            </form>
+            @include('adminflow-core::users.partials.create-form', ['roles' => $roles])
         </x-admin::modal>
     @endcan
 
@@ -497,71 +390,6 @@
                 confirmInput.classList.remove('border-rose-400');
                 confirmInput.classList.add('border-emerald-500');
             }
-        });
-
-        // 全局事件委托：拦截所有 .reset-password-form 发起服务端权威判定与异步重置
-        document.addEventListener('submit', function(e) {
-            const form = e.target.closest('.reset-password-form');
-            if (!form) return;
-
-            e.preventDefault();
-
-            const pwdInput = form.querySelector('input[name="password"]');
-            const confirmInput = form.querySelector('input[name="password_confirmation"]');
-            const feedback = form.querySelector('.password-match-feedback');
-            const submitBtn = form.querySelector('button[type="submit"]');
-
-            if (!pwdInput || !confirmInput || !feedback || !submitBtn) return;
-
-            // 按钮置为 loading 态
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin text-xs"></i> 服务端验证中...';
-
-            const formData = new FormData(form);
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(async (response) => {
-                const data = await response.json().catch(() => ({}));
-                if (response.ok && data.success) {
-                    form.reset();
-                    feedback.className = 'password-match-feedback text-[11px] font-mono mt-1 hidden';
-                    confirmInput.classList.remove('border-rose-400');
-
-                    // 关闭弹窗
-                    const modalEl = form.closest('.hs-overlay');
-                    if (modalEl) {
-                        const closeBtn = modalEl.querySelector('[data-hs-overlay]');
-                        if (closeBtn) closeBtn.click();
-                    }
-
-                    if (window.showToast) {
-                        window.showToast(data.message, 'success');
-                    }
-                } else {
-                    // 服务端校验拦截：弹窗 100% 保持打开，完整呈现服务端判定的错误文案
-                    const errorMsg = data.errors?.password?.[0] || data.message || '重置失败，请检查输入';
-                    feedback.className = 'password-match-feedback text-[11px] font-mono mt-1.5 text-rose-500 flex items-center gap-1.5';
-                    feedback.innerHTML = `<i class="bi bi-shield-x text-xs"></i> [服务端校验拦截] ${errorMsg}`;
-                    confirmInput.classList.add('border-rose-400');
-                    confirmInput.focus();
-                }
-            })
-            .catch((err) => {
-                feedback.className = 'password-match-feedback text-[11px] font-mono mt-1.5 text-rose-500 flex items-center gap-1.5';
-                feedback.innerHTML = '<i class="bi bi-wifi-off text-xs"></i> 网络连接异常，请稍候重试';
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            });
         });
     </script>
 @endsection
