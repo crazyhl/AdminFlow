@@ -37,8 +37,9 @@ final class UserController extends Controller
 
         $users = $this->userService->paginate($filters, perPage: 15);
         $roles = Role::cases();
+        $stats = $this->userService->getStatistics();
 
-        return view('adminflow-core::users.index', compact('users', 'roles', 'filters'));
+        return view('adminflow-core::users.index', compact('users', 'roles', 'filters', 'stats'));
     }
 
     /**
@@ -71,8 +72,7 @@ final class UserController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.users.index')
-                ->with('success', "成员「{$user->name}」已成功创建");
+            return redirect()->route('admin.users.index')->with('success', "成员「{$user->name}」已成功创建");
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages([
                 'password' => [$e->getMessage()],
@@ -112,8 +112,7 @@ final class UserController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.users.index')
-                ->with('success', "成员「{$user->name}」资料已更新");
+            return redirect()->route('admin.users.index')->with('success', "成员「{$user->name}」资料已更新");
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages([
                 'email' => [$e->getMessage()],
@@ -135,8 +134,7 @@ final class UserController extends Controller
             $updated = $this->userService->toggleActive($user, $actor);
             $statusText = $updated->is_active ? '已启用' : '已停用';
 
-            return redirect()->back()
-                ->with('success', "成员「{$user->name}」状态{$statusText}");
+            return redirect()->back()->with('success', "成员「{$user->name}」状态{$statusText}");
         } catch (InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -170,8 +168,7 @@ final class UserController extends Controller
                 ]);
             }
 
-            return redirect()->back()
-                ->with('success', "成员「{$user->name}」的密码已重置");
+            return redirect()->back()->with('success', "成员「{$user->name}」的密码已重置");
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages([
                 'password' => [$e->getMessage()],
@@ -193,8 +190,7 @@ final class UserController extends Controller
             $name = $user->name;
             $this->userService->delete($user, $actor);
 
-            return redirect()->route('admin.users.index')
-                ->with('success', "成员「{$name}」账号已删除");
+            return redirect()->route('admin.users.index')->with('success', "成员「{$name}」账号已删除");
         } catch (InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }

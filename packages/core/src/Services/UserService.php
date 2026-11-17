@@ -64,6 +64,30 @@ class UserService
     }
 
     /**
+     * 获取成员统计指标（聚合单次查询，降低 SQL 开销）
+     *
+     * @return array{
+     *     total: int,
+     *     active: int,
+     *     super_admin: int
+     * }
+     */
+    public function getStatistics(): array
+    {
+        $raw = User::query()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active')
+            ->selectRaw('SUM(CASE WHEN role = ? THEN 1 ELSE 0 END) as super_admin', [Role::SUPER_ADMIN->value])
+            ->first();
+
+        return [
+            'total' => (int) ($raw->total ?? 0),
+            'active' => (int) ($raw->active ?? 0),
+            'super_admin' => (int) ($raw->super_admin ?? 0),
+        ];
+    }
+
+    /**
      * 创建后台新用户
      *
      * @param array{
@@ -176,7 +200,7 @@ class UserService
      */
     public function toggleActive(User $target, ?User $actor = null): User
     {
-        if ($actor && $actor->id === $target->id) {
+        if ($actor?->id === $target->id) {
             throw new InvalidArgumentException('禁止停用当前登录账号');
         }
 
@@ -226,7 +250,7 @@ class UserService
      */
     public function delete(User $target, ?User $actor = null): void
     {
-        if ($actor && $actor->id === $target->id) {
+        if ($actor?->id === $target->id) {
             throw new InvalidArgumentException('禁止删除当前登录账号');
         }
 
@@ -265,15 +289,11 @@ class UserService
         ]);
 
         if ($validator->fails()) {
-            if (strlen($password) < 8) {
-                throw new InvalidArgumentException('密码长度至少为 8 位');
-            }
-
-            if (in_array(strtolower($password), $this->weakPasswords, true)) {
-                throw new InvalidArgumentException('此密码为常见弱密码，请选用更安全的组合');
-            }
-
-            throw new InvalidArgumentException('密码必须同时包含英文字母与数字');
+            throw new InvalidArgumentException(match (true) {
+                strlen($password) < 8 => '密码长度至少为 8 位',
+                in_array(strtolower($password), $this->weakPasswords, true) => '此密码为常见弱密码，请选用更安全的组合',
+                default => '密码必须同时包含英文字母与数字',
+            });
         }
     }
 }

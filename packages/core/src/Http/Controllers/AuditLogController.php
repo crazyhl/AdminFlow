@@ -43,7 +43,8 @@ final class AuditLogController extends Controller
         $search = trim((string) $request->query('search', ''));
         if ($search !== '') {
             $query->where(static function ($q) use ($search): void {
-                $q->where('ip_address', 'like', "%{$search}%")
+                $q
+                    ->where('ip_address', 'like', "%{$search}%")
                     ->orWhere('user_agent', 'like', "%{$search}%")
                     ->orWhere('action', 'like', "%{$search}%");
             });
@@ -70,12 +71,14 @@ final class AuditLogController extends Controller
             'total' => AuditLog::query()->count(),
             'today' => AuditLog::query()->whereDate('created_at', Carbon::today())->count(),
             'auth' => AuditLog::query()->where('action', 'like', 'auth.%')->count(),
-            'sensitive' => AuditLog::query()->whereIn('action', [
-                'user.reset_password',
-                'user.delete',
-                'user.toggle_status',
-                'auth.login_locked',
-            ])->count(),
+            'sensitive' => AuditLog::query()
+                ->whereIn('action', [
+                    'user.reset_password',
+                    'user.delete',
+                    'user.toggle_status',
+                    'auth.login_locked',
+                ])
+                ->count(),
         ];
 
         $modules = AuditLog::moduleDictionary();
@@ -83,6 +86,13 @@ final class AuditLogController extends Controller
         $users = User::query()->select(['id', 'name', 'email'])->get();
         $filters = $request->only(['module', 'action', 'user_id', 'search', 'date_range']);
 
-        return view('adminflow-core::audit_logs.index', compact('logs', 'stats', 'modules', 'actions', 'users', 'filters'));
+        return view('adminflow-core::audit_logs.index', compact(
+            'logs',
+            'stats',
+            'modules',
+            'actions',
+            'users',
+            'filters',
+        ));
     }
 }

@@ -256,9 +256,12 @@ class AuditLog extends Model
     public function getBadgeClassAttribute(): string
     {
         return match ($this->module_key) {
-            'auth' => 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60',
-            'user' => 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60',
-            'cms' => 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60',
+            'auth'
+                => 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60',
+            'user'
+                => 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60',
+            'cms'
+                => 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60',
             'admin' => 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900',
             default => 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300',
         };

@@ -56,13 +56,13 @@
                 <div>
                     <div class="text-xs text-stone-400 dark:text-stone-500">正常活跃</div>
                     <div class="text-2xl font-serif-nordic font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
-                        {{ \AdminFlow\Core\Models\User::where('is_active', true)->count() }}
+                        {{ $stats['active'] ?? 0 }}
                     </div>
                 </div>
                 <div>
                     <div class="text-xs text-stone-400 dark:text-stone-500">超级管理员</div>
                     <div class="text-2xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-0.5">
-                        {{ \AdminFlow\Core\Models\User::where('role', 'super_admin')->count() }}
+                        {{ $stats['super_admin'] ?? 0 }}
                     </div>
                 </div>
             </div>

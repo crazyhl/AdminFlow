@@ -40,7 +40,7 @@
                         <span class="sidebar-label truncate">成员列表与授权</span>
                     </div>
                     <span class="sidebar-badge text-[10px] bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-1.5 py-0.5 rounded font-mono shrink-0">
-                        {{ \AdminFlow\Core\Models\User::count() }}
+                        {{ $sidebarUserCount ?? 0 }}
                     </span>
                 </a>
             </div>

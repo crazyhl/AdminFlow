@@ -14,6 +14,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
@@ -66,6 +67,11 @@ class CoreServiceProvider extends ServiceProvider
 
         // 自动加载核心视图
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'adminflow-core');
+
+        // 侧边栏公共视图合成器 (解耦 Blade 视图对 Model 的直接依赖)
+        View::composer('adminflow-core::layouts.partials.sidebar', static function (\Illuminate\View\View $view): void {
+            $view->with('sidebarUserCount', User::query()->count());
+        });
 
         // 加载后台路由
         $this->loadRoutesFrom(__DIR__ . '/../../routes/admin.php');

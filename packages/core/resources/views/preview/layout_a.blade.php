@@ -55,14 +55,14 @@
             <div>
                 <div class="text-xs text-stone-400 dark:text-stone-500">正常活跃状态</div>
                 <div class="text-3xl font-serif-nordic font-bold text-emerald-700 dark:text-emerald-400 mt-1">
-                    {{ \AdminFlow\Core\Models\User::where('is_active', true)->count() }}
+                    {{ $stats['active'] ?? 0 }}
                 </div>
                 <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-mono">全部正常登录中</div>
             </div>
             <div>
                 <div class="text-xs text-stone-400 dark:text-stone-500">超级管理员</div>
                 <div class="text-3xl font-serif-nordic font-bold text-stone-900 dark:text-stone-100 mt-1">
-                    {{ \AdminFlow\Core\Models\User::where('role', 'super_admin')->count() }}
+                    {{ $stats['super_admin'] ?? 0 }}
                 </div>
                 <div class="text-[11px] text-stone-400 mt-1 font-mono">核心管控特权</div>
             </div>

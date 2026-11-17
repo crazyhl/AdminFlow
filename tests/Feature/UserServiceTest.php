@@ -183,4 +183,38 @@ class UserServiceTest extends TestCase
         $searchResult = $this->userService->paginate(['search' => 'zhangsan']);
         $this->assertSame(1, $searchResult->total());
     }
+
+    /**
+     * 测试用户统计指标单次聚合正确性
+     */
+    public function test_get_statistics_aggregates_correctly(): void
+    {
+        User::create([
+            'name' => '超管A',
+            'email' => 'admin_a@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::SUPER_ADMIN,
+            'is_active' => true,
+        ]);
+        User::create([
+            'name' => '超管B',
+            'email' => 'admin_b@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::SUPER_ADMIN,
+            'is_active' => false,
+        ]);
+        User::create([
+            'name' => '编辑A',
+            'email' => 'editor_a@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::EDITOR,
+            'is_active' => true,
+        ]);
+
+        $stats = $this->userService->getStatistics();
+
+        $this->assertSame(3, $stats['total']);
+        $this->assertSame(2, $stats['active']);
+        $this->assertSame(2, $stats['super_admin']);
+    }
 }

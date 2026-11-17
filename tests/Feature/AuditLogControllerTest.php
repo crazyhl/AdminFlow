@@ -99,7 +99,10 @@ class AuditLogControllerTest extends TestCase
         $response->assertSee('每页显示:');
 
         // 第 2 页
-        $responsePage2 = $this->actingAs($this->admin, 'admin')->get(route('admin.audit-logs.index', ['per_page' => 10, 'page' => 2]));
+        $responsePage2 = $this->actingAs($this->admin, 'admin')->get(route('admin.audit-logs.index', [
+            'per_page' => 10,
+            'page' => 2,
+        ]));
         $responsePage2->assertOk();
         $responsePage2->assertSee('第 2 / 2 页');
     }
