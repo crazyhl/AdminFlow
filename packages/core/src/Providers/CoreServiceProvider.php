@@ -9,8 +9,8 @@ use AdminFlow\Core\Models\User;
 use AdminFlow\Core\Policies\AuditLogPolicy;
 use AdminFlow\Core\Policies\UserPolicy;
 use AdminFlow\Core\Services\AuditLogger;
+use AdminFlow\Core\Services\PermissionRegistry;
 use AdminFlow\Core\Services\UserService;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +24,8 @@ class CoreServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(PermissionRegistry::class, static fn() => new PermissionRegistry());
+
         $this->app->singleton(AuditLogger::class, static fn() => new AuditLogger());
 
         $this->app->singleton(UserService::class, static fn() => new UserService());
@@ -49,9 +51,6 @@ class CoreServiceProvider extends ServiceProvider
         // 注册授权策略
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
-
-        // 设置全系统默认分页视图 (深度适配 Nordic Minimal 深浅色模式)
-        Paginator::defaultView('adminflow-core::pagination.nordic');
 
         // 注册后台通用 Blade 组件命名空间 (使用 <x-admin::组件名>)
         Blade::anonymousComponentPath(__DIR__ . '/../../resources/views/components', 'admin');

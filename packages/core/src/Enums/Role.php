@@ -2,6 +2,8 @@
 
 namespace AdminFlow\Core\Enums;
 
+use AdminFlow\Core\Services\PermissionRegistry;
+
 enum Role: string
 {
     case SUPER_ADMIN = 'super_admin';
@@ -27,23 +29,31 @@ enum Role: string
      */
     public function permissions(): array
     {
-        return match ($this) {
+        $base = match ($this) {
             self::SUPER_ADMIN => [
                 '*', // 超级管理员拥有所有权限
             ],
             self::EDITOR => [
-                'cms.posts.view',
-                'cms.posts.create',
-                'cms.posts.edit',
-                'cms.posts.publish',
-                'cms.media.upload',
-                'cms.comments.moderate',
+                'core.dashboard.view',
             ],
             self::VIEWER => [
                 'core.dashboard.view',
-                'cms.posts.view',
             ],
         };
+
+        if (in_array('*', $base, true)) {
+            return $base;
+        }
+
+        if (function_exists('app') && app()->bound(PermissionRegistry::class)) {
+            /** @var PermissionRegistry $registry */
+            $registry = app(PermissionRegistry::class);
+            $extra = $registry->getPermissions($this);
+
+            return array_values(array_unique(array_merge($base, $extra)));
+        }
+
+        return $base;
     }
 
     /**

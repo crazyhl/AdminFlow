@@ -6,6 +6,8 @@ use AdminFlow\Core\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticateAdmin
@@ -16,6 +18,10 @@ class AuthenticateAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('admin')->check()) {
+            if ($request->hasHeader('HX-Request')) {
+                return response('')->header('HX-Redirect', route('admin.login'));
+            }
+
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
@@ -32,6 +38,15 @@ class AuthenticateAdmin
             Auth::guard('admin')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+
+            if ($request->hasHeader('HX-Request')) {
+                $errorBag = new ViewErrorBag()->put('default', new MessageBag(['email' => [
+                    '您的账号已被停用，已强制退出系统',
+                ]]));
+                $request->session()->flash('errors', $errorBag);
+
+                return response('')->header('HX-Redirect', route('admin.login'));
+            }
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => '账号已被停用'], 403);

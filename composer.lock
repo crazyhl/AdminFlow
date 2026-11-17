@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fa6ae7aa5e471f7d6e8587946794487c",
+    "content-hash": "be6a1485e6f86abbab276ce62d591aef",
     "packages": [
         {
             "name": "adminflow/cms",

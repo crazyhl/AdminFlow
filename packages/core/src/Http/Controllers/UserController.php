@@ -3,6 +3,7 @@
 namespace AdminFlow\Core\Http\Controllers;
 
 use AdminFlow\Core\Enums\Role;
+use AdminFlow\Core\Http\Responses\HtmxResponse;
 use AdminFlow\Core\Models\User;
 use AdminFlow\Core\Services\UserService;
 use Illuminate\Http\JsonResponse;
@@ -12,8 +13,6 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\MessageBag;
-use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -78,19 +77,7 @@ final class UserController extends Controller
             $user = $this->userService->create($data, $actor);
 
             if ($request->hasHeader('HX-Request')) {
-                session()->flash('success', "成员「{$user->name}」已成功创建");
-
-                return response('')
-                    ->header('HX-Refresh', 'true')
-                    ->header(
-                        'HX-Trigger',
-                        (string) json_encode([
-                            'showToast' => [
-                                'message' => "成员「{$user->name}」已成功创建",
-                                'type' => 'success',
-                            ],
-                        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-                    );
+                return HtmxResponse::success("成员「{$user->name}」已成功创建");
             }
 
             if ($request->wantsJson()) {
@@ -103,23 +90,24 @@ final class UserController extends Controller
             return redirect()->route('admin.users.index')->with('success', "成员「{$user->name}」已成功创建");
         } catch (ValidationException $e) {
             if ($request->hasHeader('HX-Request')) {
-                $errorBag = new ViewErrorBag()->put('default', $e->validator->errors());
-
-                return response()->view('adminflow-core::users.partials.create-form', [
-                    'roles' => Role::cases(),
-                    'errors' => $errorBag,
-                ]);
+                return HtmxResponse::validation(
+                    'adminflow-core::users.partials.create-form',
+                    ['roles' => Role::cases()],
+                    $e,
+                    $request,
+                );
             }
 
             throw $e;
         } catch (InvalidArgumentException $e) {
             if ($request->hasHeader('HX-Request')) {
-                $errorBag = new ViewErrorBag()->put('default', new MessageBag(['password' => [$e->getMessage()]]));
-
-                return response()->view('adminflow-core::users.partials.create-form', [
-                    'roles' => Role::cases(),
-                    'errors' => $errorBag,
-                ]);
+                return HtmxResponse::error(
+                    'adminflow-core::users.partials.create-form',
+                    ['roles' => Role::cases()],
+                    'password',
+                    $e->getMessage(),
+                    $request,
+                );
             }
 
             throw ValidationException::withMessages([
@@ -174,19 +162,7 @@ final class UserController extends Controller
             $this->userService->update($user, $data, $actor);
 
             if ($request->hasHeader('HX-Request')) {
-                session()->flash('success', "成员「{$user->name}」资料已更新");
-
-                return response('')
-                    ->header('HX-Refresh', 'true')
-                    ->header(
-                        'HX-Trigger',
-                        (string) json_encode([
-                            'showToast' => [
-                                'message' => "成员「{$user->name}」资料已更新",
-                                'type' => 'success',
-                            ],
-                        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-                    );
+                return HtmxResponse::success("成员「{$user->name}」资料已更新");
             }
 
             if ($request->wantsJson()) {
@@ -199,25 +175,24 @@ final class UserController extends Controller
             return redirect()->route('admin.users.index')->with('success', "成员「{$user->name}」资料已更新");
         } catch (ValidationException $e) {
             if ($request->hasHeader('HX-Request')) {
-                $errorBag = new ViewErrorBag()->put('default', $e->validator->errors());
-
-                return response()->view('adminflow-core::users.partials.edit-form', [
-                    'user' => $user,
-                    'roles' => Role::cases(),
-                    'errors' => $errorBag,
-                ]);
+                return HtmxResponse::validation(
+                    'adminflow-core::users.partials.edit-form',
+                    ['user' => $user, 'roles' => Role::cases()],
+                    $e,
+                    $request,
+                );
             }
 
             throw $e;
         } catch (InvalidArgumentException $e) {
             if ($request->hasHeader('HX-Request')) {
-                $errorBag = new ViewErrorBag()->put('default', new MessageBag(['email' => [$e->getMessage()]]));
-
-                return response()->view('adminflow-core::users.partials.edit-form', [
-                    'user' => $user,
-                    'roles' => Role::cases(),
-                    'errors' => $errorBag,
-                ]);
+                return HtmxResponse::error(
+                    'adminflow-core::users.partials.edit-form',
+                    ['user' => $user, 'roles' => Role::cases()],
+                    'email',
+                    $e->getMessage(),
+                    $request,
+                );
             }
 
             throw ValidationException::withMessages([
@@ -268,19 +243,7 @@ final class UserController extends Controller
             $this->userService->resetPassword($user, (string) $data['password'], $actor);
 
             if ($request->hasHeader('HX-Request')) {
-                session()->flash('success', "成员「{$user->name}」的密码已重置");
-
-                return response('')
-                    ->header('HX-Refresh', 'true')
-                    ->header(
-                        'HX-Trigger',
-                        (string) json_encode([
-                            'showToast' => [
-                                'message' => "成员「{$user->name}」的密码已重置",
-                                'type' => 'success',
-                            ],
-                        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-                    );
+                return HtmxResponse::success("成员「{$user->name}」的密码已重置");
             }
 
             if ($request->wantsJson()) {
@@ -293,23 +256,24 @@ final class UserController extends Controller
             return redirect()->back()->with('success', "成员「{$user->name}」的密码已重置");
         } catch (ValidationException $e) {
             if ($request->hasHeader('HX-Request')) {
-                $errorBag = new ViewErrorBag()->put('default', $e->validator->errors());
-
-                return response()->view('adminflow-core::users.partials.reset-password-form', [
-                    'user' => $user,
-                    'errors' => $errorBag,
-                ]);
+                return HtmxResponse::validation(
+                    'adminflow-core::users.partials.reset-password-form',
+                    ['user' => $user],
+                    $e,
+                    $request,
+                );
             }
 
             throw $e;
         } catch (InvalidArgumentException $e) {
             if ($request->hasHeader('HX-Request')) {
-                $errorBag = new ViewErrorBag()->put('default', new MessageBag(['password' => [$e->getMessage()]]));
-
-                return response()->view('adminflow-core::users.partials.reset-password-form', [
-                    'user' => $user,
-                    'errors' => $errorBag,
-                ]);
+                return HtmxResponse::error(
+                    'adminflow-core::users.partials.reset-password-form',
+                    ['user' => $user],
+                    'password',
+                    $e->getMessage(),
+                    $request,
+                );
             }
 
             throw ValidationException::withMessages([

@@ -15,7 +15,7 @@ Route::prefix('admin')
 
         // 受保护的后台路由
         Route::middleware(['admin.auth'])->group(function (): void {
-            Route::get('/', function () {
+            Route::get('/', function (\AdminFlow\Core\Services\UserService $userService) {
                 $canViewAudit = \Illuminate\Support\Facades\Gate::allows(
                     'viewAny',
                     \AdminFlow\Core\Models\AuditLog::class,
@@ -25,9 +25,11 @@ Route::prefix('admin')
                     ? \AdminFlow\Core\Models\AuditLog::query()->with('user')->latest('id')->take(8)->get()
                     : collect();
 
+                $userStats = $userService->getStatistics();
+
                 $stats = [
-                    'users_count' => \AdminFlow\Core\Models\User::query()->count(),
-                    'active_users_count' => \AdminFlow\Core\Models\User::query()->where('is_active', true)->count(),
+                    'users_count' => $userStats['total'],
+                    'active_users_count' => $userStats['active'],
                     'audit_count' => $canViewAudit ? \AdminFlow\Core\Models\AuditLog::query()->count() : 0,
                 ];
 

@@ -17,7 +17,23 @@ document.addEventListener('htmx:afterSwap', () => {
     window.HSStaticMethods?.autoInit();
 });
 
-// 3. 支持服务端通过 HX-Trigger 响应头触发全局 Toast 消息
+// 3. 允许 HTTP 422 校验失败响应正常执行 DOM Swap (保持表单打开且呈现局部错误)
+document.addEventListener('htmx:beforeSwap', (event) => {
+    if (event.detail.xhr.status === 422) {
+        event.detail.shouldSwap = true;
+        event.detail.isError = false;
+    }
+});
+
+// 4. 会话过期与未认证拦截 (401 / 419) 平滑跳转登录页
+document.addEventListener('htmx:responseError', (event) => {
+    const status = event.detail.xhr.status;
+    if (status === 401 || status === 419) {
+        window.location.href = '/admin/login';
+    }
+});
+
+// 5. 支持服务端通过 HX-Trigger 响应头触发全局 Toast 消息
 document.addEventListener('showToast', (event) => {
     const detail = event.detail || {};
     if (window.showToast && detail.message) {

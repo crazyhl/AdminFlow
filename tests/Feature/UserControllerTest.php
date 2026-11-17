@@ -330,7 +330,7 @@ class UserControllerTest extends TestCase
                 'role' => 'invalid-role',
             ]);
 
-        $response->assertOk();
+        $response->assertUnprocessable();
         $response->assertViewIs('adminflow-core::users.partials.create-form');
         $response->assertSee('请输入成员姓名');
         $response->assertSee('邮箱格式不符合规范');
@@ -355,7 +355,7 @@ class UserControllerTest extends TestCase
             ],
         );
 
-        $response->assertOk();
+        $response->assertUnprocessable();
         $response->assertViewIs('adminflow-core::users.partials.edit-form');
         $response->assertSee('该邮箱已被其他成员占用');
     }
@@ -429,7 +429,7 @@ class UserControllerTest extends TestCase
                 'password_confirmation' => 'MismatchedPass2026',
             ]);
 
-        $response->assertOk();
+        $response->assertUnprocessable();
         $response->assertViewIs('adminflow-core::users.partials.reset-password-form');
         $response->assertSee('两次输入的新密码不一致，请重新核对');
     }
@@ -494,5 +494,78 @@ class UserControllerTest extends TestCase
 
         $this->actingAs($viewer, 'admin')->get(route('admin.preview.layout-a'))->assertForbidden();
         $this->actingAs($viewer, 'admin')->get(route('admin.preview.layout-b'))->assertForbidden();
+    }
+
+    /**
+     * 测试非法数组类型字段不会引发 Blade 回显 500 崩溃，仍能安全返回 422 局部表单
+     */
+    public function test_htmx_create_user_with_array_name_does_not_throw_500(): void
+    {
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.store'), [
+                'name' => ['invalid', 'array'],
+                'email' => 'valid@adminflow.test',
+                'password' => 'Pass123456',
+                'role' => Role::VIEWER->value,
+            ]);
+
+        $response->assertUnprocessable();
+        $response->assertViewIs('adminflow-core::users.partials.create-form');
+    }
+
+    /**
+     * 测试未认证用户发起 HTMX 请求时，返回 HX-Redirect 整页重定向响应头
+     */
+    public function test_htmx_unauthenticated_request_returns_hx_redirect(): void
+    {
+        $response = $this->withHeader('HX-Request', 'true')->get(route('admin.users.index'));
+
+        $response->assertHeader('HX-Redirect', route('admin.login'));
+    }
+
+    /**
+     * 测试创建成员校验失败后，is_active 为 0 时不会恢复勾选
+     */
+    public function test_htmx_create_user_validation_error_preserves_unchecked_is_active(): void
+    {
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.store'), [
+                'name' => '张三',
+                'email' => 'invalid-email',
+                'password' => 'short',
+                'role' => Role::VIEWER->value,
+                'is_active' => '0',
+            ]);
+
+        $response->assertUnprocessable();
+        $response->assertViewIs('adminflow-core::users.partials.create-form');
+        $content = (string) $response->getContent();
+        $this->assertStringNotContainsString('value="1" checked', $content);
+        $this->assertSame('0', session('_old_input.is_active'));
+    }
+
+    /**
+     * 测试 is_active 为非法数组类型时不会触发 500 Array to string conversion，按 0 安全回显
+     */
+    public function test_htmx_create_user_with_array_is_active_does_not_throw_500(): void
+    {
+        $response = $this
+            ->actingAs($this->admin, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->post(route('admin.users.store'), [
+                'name' => '张三',
+                'email' => 'valid_tester@adminflow.test',
+                'password' => 'short',
+                'role' => Role::VIEWER->value,
+                'is_active' => ['invalid', 'array'],
+            ]);
+
+        $response->assertUnprocessable();
+        $response->assertViewIs('adminflow-core::users.partials.create-form');
+        $this->assertSame('0', session('_old_input.is_active'));
     }
 }

@@ -200,4 +200,26 @@ class AuthGatewayTest extends TestCase
             'user_id' => $user->id,
         ]);
     }
+
+    /**
+     * 测试已停用账号发起 HTMX 请求时，返回 HX-Redirect 并写入 email 错误消息包
+     */
+    public function test_disabled_user_htmx_request_returns_hx_redirect_with_errors(): void
+    {
+        $user = User::query()->create([
+            'name' => '已停用HTMX用户',
+            'email' => 'disabled_htmx@example.com',
+            'password' => Hash::make('Pass123456'),
+            'role' => Role::EDITOR,
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($user, 'admin');
+
+        $response = $this->withHeader('HX-Request', 'true')->get('/admin');
+
+        $response->assertHeader('HX-Redirect', route('admin.login'));
+        $response->assertSessionHasErrors('email');
+        $this->assertFalse(Auth::guard('admin')->check());
+    }
 }

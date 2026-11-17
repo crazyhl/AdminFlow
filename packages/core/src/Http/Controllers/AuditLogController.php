@@ -66,19 +66,26 @@ final class AuditLogController extends Controller
 
         $logs = $query->latest('id')->paginate($perPage)->withQueryString();
 
-        // 概览指标统计
+        // 概览指标统计（单次聚合查询，避免 4 次全表扫描）
+        $todayStart = Carbon::today()->startOfDay()->toDateTimeString();
+        $todayEnd = Carbon::today()->endOfDay()->toDateTimeString();
+        $rawStats = AuditLog::query()
+            ->selectRaw('COUNT(*) as total_count')
+            ->selectRaw('SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 ELSE 0 END) as today_count', [
+                $todayStart,
+                $todayEnd,
+            ])
+            ->selectRaw("SUM(CASE WHEN action LIKE 'auth.%' THEN 1 ELSE 0 END) as auth_count")
+            ->selectRaw(
+                "SUM(CASE WHEN action IN ('user.reset_password', 'user.delete', 'user.toggle_status', 'auth.login_locked') THEN 1 ELSE 0 END) as sensitive_count",
+            )
+            ->first();
+
         $stats = [
-            'total' => AuditLog::query()->count(),
-            'today' => AuditLog::query()->whereDate('created_at', Carbon::today())->count(),
-            'auth' => AuditLog::query()->where('action', 'like', 'auth.%')->count(),
-            'sensitive' => AuditLog::query()
-                ->whereIn('action', [
-                    'user.reset_password',
-                    'user.delete',
-                    'user.toggle_status',
-                    'auth.login_locked',
-                ])
-                ->count(),
+            'total' => (int) ($rawStats->total_count ?? 0),
+            'today' => (int) ($rawStats->today_count ?? 0),
+            'auth' => (int) ($rawStats->auth_count ?? 0),
+            'sensitive' => (int) ($rawStats->sensitive_count ?? 0),
         ];
 
         $modules = AuditLog::moduleDictionary();
