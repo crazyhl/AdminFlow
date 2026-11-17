@@ -12,8 +12,8 @@ class UserPolicy
     public function before(User $actor, string $ability): ?bool
     {
         if ($actor->isSuperAdmin()) {
-            // 超管在针对自身的状态/删除操作上仍需进入具体策略进行防御性拦截（如防自我禁用）
-            if (in_array($ability, ['toggleStatus', 'delete'], true)) {
+            // 超管在针对自身的状态、删除或自改角色操作上仍需进入具体策略进行防御性拦截
+            if (in_array($ability, ['toggleStatus', 'delete', 'assignRole'], true)) {
                 return null;
             }
 
@@ -90,6 +90,19 @@ class UserPolicy
 
         // 防御 2：绝不允许删除超级管理员
         if ($target->isSuperAdmin()) {
+            return false;
+        }
+
+        return $actor->hasPermission('core.users.manage');
+    }
+
+    /**
+     * 分配/变更用户角色权限（需要具备用户管理权限，且禁止变更操作者自身角色以防越权与误降级）
+     */
+    public function assignRole(User $actor, User $target): bool
+    {
+        // 防御：绝不允许变更自己的角色
+        if ($actor->id === $target->id) {
             return false;
         }
 

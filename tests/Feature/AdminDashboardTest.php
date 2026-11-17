@@ -47,4 +47,34 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('toggleSidebarMini');
         $response->assertSee('hs-application-sidebar');
     }
+
+    /**
+     * 测试无审计权限的用户访问 Dashboard 时不泄露审计流水
+     */
+    public function test_viewer_without_audit_permission_cannot_see_audit_logs_in_dashboard(): void
+    {
+        $viewer = User::query()->create([
+            'name' => '普通访客',
+            'email' => 'viewer@example.com',
+            'password' => Hash::make('Pass123456'),
+            'role' => Role::VIEWER,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+
+        AuditLog::query()->create([
+            'user_id' => $viewer->id,
+            'action' => 'sensitive.super_secret_action',
+            'ip_address' => '192.168.1.100',
+            'user_agent' => 'SecretAgent',
+            'created_at' => now(),
+        ]);
+
+        $response = $this->actingAs($viewer, 'admin')->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertDontSee('sensitive.super_secret_action');
+        $response->assertDontSee('192.168.1.100');
+        $response->assertSee('受限');
+    }
 }

@@ -5,6 +5,7 @@ namespace AdminFlow\Core\Services;
 use AdminFlow\Core\Enums\Role;
 use AdminFlow\Core\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -116,29 +117,39 @@ class UserService
         $isAdmin = $role === Role::SUPER_ADMIN;
         $isActive = $data['is_active'] ?? true;
 
-        /** @var User $user */
-        $user = User::query()->create([
-            'name' => trim($data['name'] ?? ''),
-            'email' => $email,
-            'password' => Hash::make($password),
-            'role' => $role,
-            'is_admin' => $isAdmin,
-            'is_active' => (bool) $isActive,
-        ]);
+        return DB::transaction(static function () use (
+            $data,
+            $email,
+            $password,
+            $role,
+            $isAdmin,
+            $isActive,
+            $actor,
+        ): User {
+            /** @var User $user */
+            $user = User::query()->create([
+                'name' => trim($data['name'] ?? ''),
+                'email' => $email,
+                'password' => Hash::make($password),
+                'role' => $role,
+                'is_admin' => $isAdmin,
+                'is_active' => (bool) $isActive,
+            ]);
 
-        AuditLogger::record(
-            action: 'user.create',
-            target: $user,
-            details: [
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role->value,
-                'is_active' => $user->is_active,
-            ],
-            userId: $actor?->id,
-        );
+            AuditLogger::record(
+                action: 'user.create',
+                target: $user,
+                details: [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role->value,
+                    'is_active' => $user->is_active,
+                ],
+                userId: $actor?->id,
+            );
 
-        return $user;
+            return $user;
+        });
     }
 
     /**
@@ -176,23 +187,25 @@ class UserService
             $target->is_admin = $newRole === Role::SUPER_ADMIN;
         }
 
-        $target->save();
+        return DB::transaction(static function () use ($target, $oldState, $actor): User {
+            $target->save();
 
-        AuditLogger::record(
-            action: 'user.update',
-            target: $target,
-            details: [
-                'before' => $oldState,
-                'after' => [
-                    'name' => $target->name,
-                    'email' => $target->email,
-                    'role' => $target->role->value,
+            AuditLogger::record(
+                action: 'user.update',
+                target: $target,
+                details: [
+                    'before' => $oldState,
+                    'after' => [
+                        'name' => $target->name,
+                        'email' => $target->email,
+                        'role' => $target->role->value,
+                    ],
                 ],
-            ],
-            userId: $actor?->id,
-        );
+                userId: $actor?->id,
+            );
 
-        return $target;
+            return $target;
+        });
     }
 
     /**
@@ -200,29 +213,34 @@ class UserService
      */
     public function toggleActive(User $target, ?User $actor = null): User
     {
-        if ($actor?->id === $target->id) {
-            throw new InvalidArgumentException('禁止停用当前登录账号');
-        }
+        return DB::transaction(static function () use ($target, $actor): User {
+            /** @var User $lockedTarget */
+            $lockedTarget = User::query()->lockForUpdate()->findOrFail($target->id);
 
-        if ($target->isSuperAdmin()) {
-            throw new InvalidArgumentException('禁止停用超级管理员账号');
-        }
+            if ($actor?->id === $lockedTarget->id) {
+                throw new InvalidArgumentException('禁止停用当前登录账号');
+            }
 
-        $originalStatus = $target->is_active;
-        $target->is_active = !$originalStatus;
-        $target->save();
+            if ($lockedTarget->isSuperAdmin()) {
+                throw new InvalidArgumentException('禁止停用超级管理员账号');
+            }
 
-        AuditLogger::record(
-            action: 'user.toggle_status',
-            target: $target,
-            details: [
-                'from' => $originalStatus,
-                'to' => $target->is_active,
-            ],
-            userId: $actor?->id,
-        );
+            $originalStatus = $lockedTarget->is_active;
+            $lockedTarget->is_active = !$originalStatus;
+            $lockedTarget->save();
 
-        return $target;
+            AuditLogger::record(
+                action: 'user.toggle_status',
+                target: $lockedTarget,
+                details: [
+                    'from' => $originalStatus,
+                    'to' => $lockedTarget->is_active,
+                ],
+                userId: $actor?->id,
+            );
+
+            return $lockedTarget;
+        });
     }
 
     /**
@@ -233,16 +251,19 @@ class UserService
         $this->assertPasswordStrength($newPassword);
 
         $target->password = Hash::make($newPassword);
-        $target->save();
 
-        AuditLogger::record(
-            action: 'user.reset_password',
-            target: $target,
-            details: [
-                'target_email' => $target->email,
-            ],
-            userId: $actor?->id,
-        );
+        DB::transaction(static function () use ($target, $actor): void {
+            $target->save();
+
+            AuditLogger::record(
+                action: 'user.reset_password',
+                target: $target,
+                details: [
+                    'target_email' => $target->email,
+                ],
+                userId: $actor?->id,
+            );
+        });
     }
 
     /**
@@ -250,28 +271,33 @@ class UserService
      */
     public function delete(User $target, ?User $actor = null): void
     {
-        if ($actor?->id === $target->id) {
-            throw new InvalidArgumentException('禁止删除当前登录账号');
-        }
+        DB::transaction(static function () use ($target, $actor): void {
+            /** @var User $lockedTarget */
+            $lockedTarget = User::query()->lockForUpdate()->findOrFail($target->id);
 
-        if ($target->isSuperAdmin()) {
-            throw new InvalidArgumentException('禁止删除超级管理员账号');
-        }
+            if ($actor?->id === $lockedTarget->id) {
+                throw new InvalidArgumentException('禁止删除当前登录账号');
+            }
 
-        $email = $target->email;
-        $targetId = $target->id;
+            if ($lockedTarget->isSuperAdmin()) {
+                throw new InvalidArgumentException('禁止删除超级管理员账号');
+            }
 
-        $target->delete();
+            $email = $lockedTarget->email;
+            $targetId = $lockedTarget->id;
 
-        AuditLogger::record(
-            action: 'user.delete',
-            target: $target,
-            details: [
-                'deleted_user_id' => $targetId,
-                'deleted_email' => $email,
-            ],
-            userId: $actor?->id,
-        );
+            $lockedTarget->delete();
+
+            AuditLogger::record(
+                action: 'user.delete',
+                target: $lockedTarget,
+                details: [
+                    'deleted_user_id' => $targetId,
+                    'deleted_email' => $email,
+                ],
+                userId: $actor?->id,
+            );
+        });
     }
 
     /**

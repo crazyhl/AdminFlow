@@ -46,20 +46,29 @@
             <label class="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">
                 预设角色分配 <span class="text-rose-500">*</span>
             </label>
-            <select name="role"
-                    required
-                    class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border {{ $errors->has('role') ? 'border-rose-400' : 'border-stone-200 dark:border-stone-800' }} text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
-                @foreach($roles as $role)
-                    <option value="{{ $role->value }}" {{ old('role', $user->role->value) === $role->value ? 'selected' : '' }}>
-                        {{ $role->label() }}
-                    </option>
-                @endforeach
-            </select>
-            @if($errors->has('role'))
-                <p class="text-rose-500 text-[11px] font-mono mt-1.5 flex items-center gap-1.5">
-                    <i class="bi bi-x-circle text-xs"></i> {{ $errors->first('role') }}
-                </p>
-            @endif
+            @can('assignRole', $user)
+                <select name="role"
+                        required
+                        class="w-full px-3.5 py-2 rounded-lg bg-stone-50/70 dark:bg-stone-900/60 border {{ $errors->has('role') ? 'border-rose-400' : 'border-stone-200 dark:border-stone-800' }} text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-hidden focus:border-stone-400 transition-colors">
+                    @foreach($roles as $role)
+                        <option value="{{ $role->value }}" {{ old('role', $user->role->value) === $role->value ? 'selected' : '' }}>
+                            {{ $role->label() }}
+                        </option>
+                    @endforeach
+                </select>
+                @if($errors->has('role'))
+                    <p class="text-rose-500 text-[11px] font-mono mt-1.5 flex items-center gap-1.5">
+                        <i class="bi bi-x-circle text-xs"></i> {{ $errors->first('role') }}
+                    </p>
+                @endif
+            @else
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-stone-100/60 dark:bg-stone-800/40 border border-stone-200/60 dark:border-stone-700/50">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 font-mono">
+                        {{ $user->role->label() }}
+                    </span>
+                    <span class="text-[11px] text-stone-400 font-mono">本人账号禁止自调角色</span>
+                </div>
+            @endcan
         </div>
     </div>
 

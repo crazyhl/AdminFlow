@@ -395,14 +395,14 @@ class UserControllerTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this
-            ->actingAs($this->admin, 'admin')
-            ->withHeader('HX-Request', 'true')
-            ->put(route('admin.users.update', $target), [
+        $response = $this->actingAs($this->admin, 'admin')->withHeader('HX-Request', 'true')->put(
+            route('admin.users.update', $target),
+            [
                 'name' => '已改名成员',
                 'email' => 'updated_email@adminflow.test',
                 'role' => Role::EDITOR->value,
-            ]);
+            ],
+        );
 
         $response->assertOk();
         $response->assertHeader('HX-Refresh', 'true');
@@ -432,5 +432,67 @@ class UserControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('adminflow-core::users.partials.reset-password-form');
         $response->assertSee('两次输入的新密码不一致，请重新核对');
+    }
+
+    /**
+     * 测试普通用户编辑自己时，无法通过篡改 role 越权升为超级管理员
+     */
+    public function test_user_cannot_escalate_role_by_editing_self(): void
+    {
+        $editor = User::create([
+            'name' => '普通编辑员',
+            'email' => 'editor_esc@adminflow.test',
+            'password' => 'Pass123456',
+            'role' => Role::EDITOR,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+
+        // 尝试通过编辑自己的资料把角色改为 super_admin
+        $response = $this->actingAs($editor, 'admin')->put(route('admin.users.update', $editor), [
+            'name' => '普通编辑员',
+            'email' => 'editor_esc@adminflow.test',
+            'role' => Role::SUPER_ADMIN->value,
+        ]);
+
+        $response->assertForbidden();
+        $this->assertSame(Role::EDITOR, $editor->fresh()->role);
+        $this->assertFalse($editor->fresh()->is_admin);
+    }
+
+    /**
+     * 测试取消勾选 is_active 后，新创建的用户确为停用状态 (is_active = false)
+     */
+    public function test_create_user_with_unchecked_is_active_creates_disabled_user(): void
+    {
+        $response = $this->actingAs($this->admin, 'admin')->post(route('admin.users.store'), [
+            'name' => '待停用成员',
+            'email' => 'disabled_user@adminflow.test',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER->value,
+            'is_active' => '0', // 模拟表单未勾选或显式提交 0
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $created = User::query()->where('email', 'disabled_user@adminflow.test')->firstOrFail();
+        $this->assertFalse($created->is_active);
+    }
+
+    /**
+     * 测试未授权用户无法访问布局预览路由
+     */
+    public function test_preview_layout_requires_view_any_permission(): void
+    {
+        $viewer = User::create([
+            'name' => '无权访客',
+            'email' => 'noperm_preview@adminflow.test',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($viewer, 'admin')->get(route('admin.preview.layout-a'))->assertForbidden();
+        $this->actingAs($viewer, 'admin')->get(route('admin.preview.layout-b'))->assertForbidden();
     }
 }

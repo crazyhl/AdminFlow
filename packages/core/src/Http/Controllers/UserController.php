@@ -70,7 +70,7 @@ final class UserController extends Controller
                 'role.required' => '请分配预设角色',
             ]);
 
-            $data['is_active'] = $request->boolean('is_active', true);
+            $data['is_active'] = $request->boolean('is_active', false);
 
             /** @var User|null $actor */
             $actor = Auth::guard('admin')->user();
@@ -136,7 +136,7 @@ final class UserController extends Controller
         Gate::authorize('update', $user);
 
         try {
-            $data = $request->validate([
+            $rules = [
                 'name' => ['required', 'string', 'max:50'],
                 'email' => [
                     'required',
@@ -145,8 +145,13 @@ final class UserController extends Controller
                     'max:255',
                     Rule::unique('adminflow_users', 'email')->ignore($user->id),
                 ],
-                'role' => ['required', 'string', Rule::enum(Role::class)],
-            ], [
+            ];
+
+            if ($request->has('role')) {
+                $rules['role'] = ['required', 'string', Rule::enum(Role::class)];
+            }
+
+            $data = $request->validate($rules, [
                 'name.required' => '请输入成员姓名',
                 'name.max' => '成员姓名长度不得超过 50 个字符',
                 'email.required' => '请输入登录邮箱',
@@ -157,6 +162,14 @@ final class UserController extends Controller
 
             /** @var User|null $actor */
             $actor = Auth::guard('admin')->user();
+
+            $newRole = $data['role'] ?? null;
+            unset($data['role']);
+
+            if ($newRole !== null && $newRole !== $user->role->value) {
+                Gate::authorize('assignRole', $user);
+                $data['role'] = $newRole;
+            }
 
             $this->userService->update($user, $data, $actor);
 

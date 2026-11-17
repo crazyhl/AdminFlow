@@ -19,62 +19,68 @@
         <x-admin::stat-card label="已沉淀文章" value="42" subtext="38 篇已发布 · 4 篇草稿" color="stone" />
         <x-admin::stat-card label="待审核评论" value="7" subtext="三层树形嵌套 · 防 XSS 注入" color="amber" />
         <x-admin::stat-card label="媒体库占用" value="1.2 GB" subtext="186 张高清图床资源" color="stone" />
-        <x-admin::stat-card label="累计操作审计" :value="$stats['audit_count'] ?? 0" subtext="敏感口令强制脱敏落库" color="emerald" />
+        @can('viewAny', \AdminFlow\Core\Models\AuditLog::class)
+            <x-admin::stat-card label="累计操作审计" :value="$stats['audit_count'] ?? 0" subtext="敏感口令强制脱敏落库" color="emerald" />
+        @else
+            <x-admin::stat-card label="累计操作审计" value="受限" subtext="需要审计查阅授权" color="stone" />
+        @endcan
     </div>
 
     <!-- 主体双栏工作台布局 (12 列网格：8 列核心流水 + 4 列右侧快捷工具与系统规格) -->
     <div class="w-full grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <!-- 左侧 8 列：操作审计流 + 创作工作台概览 -->
         <div class="xl:col-span-8 space-y-6">
-            <!-- 卡片 1：最新操作审计日志流水 -->
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <div class="text-xs font-semibold text-stone-900 dark:text-stone-100 tracking-wide uppercase flex items-center gap-2">
-                        <i class="bi bi-clock-history text-sm text-stone-500"></i>
-                        <span>最新操作审计流水</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[11px] text-stone-400 font-mono">最近 8 条</span>
-                        <a href="{{ route('admin.audit-logs.index') }}" class="text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">
-                            查看全量审计 →
-                        </a>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-[#202020] rounded-xl border border-stone-200/70 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors duration-150">
-                    @forelse($auditLogs as $log)
-                        <div class="p-3.5 px-4.5 flex items-start justify-between gap-4 hover:bg-stone-50/40 dark:hover:bg-stone-800/30 transition-colors">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $log->badge_class }}">
-                                        {{ $log->module_label }} · {{ $log->action_label }}
-                                    </span>
-                                    <span class="text-xs font-medium text-stone-900 dark:text-stone-100">
-                                        {{ $log->user?->name ?? '系统 CLI / 访客' }}
-                                    </span>
-                                    @if($log->user?->email)
-                                        <span class="text-[11px] text-stone-400 font-mono">({{ $log->user->email }})</span>
-                                    @endif
-                                </div>
-                                <div class="text-[11px] text-stone-500 dark:text-stone-400 font-mono flex items-center gap-2 flex-wrap">
-                                    <span>IP: {{ $log->ip_address ?? '127.0.0.1' }}</span>
-                                    <span>·</span>
-                                    <span>客户端: {{ Str::limit($log->user_agent, 45) }}</span>
-                                    <span>·</span>
-                                    <span class="text-stone-400 text-[10px]">标识: {{ $log->action }}</span>
-                                </div>
-                            </div>
-                            <div class="text-right shrink-0 pt-0.5">
-                                <div class="text-[11px] text-stone-400 dark:text-stone-500 font-mono">
-                                    {{ $log->created_at?->diffForHumans() }}
-                                </div>
-                            </div>
+            <!-- 卡片 1：最新操作审计日志流水 (仅向具备审计权限的角色开放) -->
+            @can('viewAny', \AdminFlow\Core\Models\AuditLog::class)
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs font-semibold text-stone-900 dark:text-stone-100 tracking-wide uppercase flex items-center gap-2">
+                            <i class="bi bi-clock-history text-sm text-stone-500"></i>
+                            <span>最新操作审计流水</span>
                         </div>
-                    @empty
-                        <div class="p-8 text-center text-xs text-stone-400 font-mono">暂无审计记录</div>
-                    @endforelse
+                        <div class="flex items-center gap-3">
+                            <span class="text-[11px] text-stone-400 font-mono">最近 8 条</span>
+                            <a href="{{ route('admin.audit-logs.index') }}" class="text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">
+                                查看全量审计 →
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-[#202020] rounded-xl border border-stone-200/70 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors duration-150">
+                        @forelse($auditLogs as $log)
+                            <div class="p-3.5 px-4.5 flex items-start justify-between gap-4 hover:bg-stone-50/40 dark:hover:bg-stone-800/30 transition-colors">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $log->badge_class }}">
+                                            {{ $log->module_label }} · {{ $log->action_label }}
+                                        </span>
+                                        <span class="text-xs font-medium text-stone-900 dark:text-stone-100">
+                                            {{ $log->user?->name ?? '系统 CLI / 访客' }}
+                                        </span>
+                                        @if($log->user?->email)
+                                            <span class="text-[11px] text-stone-400 font-mono">({{ $log->user->email }})</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-[11px] text-stone-500 dark:text-stone-400 font-mono flex items-center gap-2 flex-wrap">
+                                        <span>IP: {{ $log->ip_address ?? '127.0.0.1' }}</span>
+                                        <span>·</span>
+                                        <span>客户端: {{ Str::limit($log->user_agent, 45) }}</span>
+                                        <span>·</span>
+                                        <span class="text-stone-400 text-[10px]">标识: {{ $log->action }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0 pt-0.5">
+                                    <div class="text-[11px] text-stone-400 dark:text-stone-500 font-mono">
+                                        {{ $log->created_at?->diffForHumans() }}
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="p-8 text-center text-xs text-stone-400 font-mono">暂无审计记录</div>
+                        @endforelse
+                    </div>
                 </div>
-            </div>
+            @endcan
 
             <!-- 卡片 2：创作工坊与待办概览 (CMS 核心工作区) -->
             <div class="space-y-3">

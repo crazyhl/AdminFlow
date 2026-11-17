@@ -83,6 +83,7 @@
 
         <!-- 立即允许登录开关 -->
         <div class="flex items-center gap-2 pt-1">
+            <input type="hidden" name="is_active" value="0">
             <input type="checkbox"
                    id="create-is-active"
                    name="is_active"

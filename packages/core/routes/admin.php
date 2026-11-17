@@ -16,11 +16,19 @@ Route::prefix('admin')
         // 受保护的后台路由
         Route::middleware(['admin.auth'])->group(function (): void {
             Route::get('/', function () {
-                $auditLogs = \AdminFlow\Core\Models\AuditLog::query()->with('user')->latest('id')->take(8)->get();
+                $canViewAudit = \Illuminate\Support\Facades\Gate::allows(
+                    'viewAny',
+                    \AdminFlow\Core\Models\AuditLog::class,
+                );
+
+                $auditLogs = $canViewAudit
+                    ? \AdminFlow\Core\Models\AuditLog::query()->with('user')->latest('id')->take(8)->get()
+                    : collect();
+
                 $stats = [
                     'users_count' => \AdminFlow\Core\Models\User::query()->count(),
                     'active_users_count' => \AdminFlow\Core\Models\User::query()->where('is_active', true)->count(),
-                    'audit_count' => \AdminFlow\Core\Models\AuditLog::query()->count(),
+                    'audit_count' => $canViewAudit ? \AdminFlow\Core\Models\AuditLog::query()->count() : 0,
                 ];
 
                 return view('adminflow-core::dashboard', compact('auditLogs', 'stats'));
@@ -54,6 +62,8 @@ Route::prefix('admin')
                 ->name('admin.preview.')
                 ->group(function (): void {
                     Route::get('layout-a', function (AdminFlow\Core\Services\UserService $userService) {
+                        \Illuminate\Support\Facades\Gate::authorize('viewAny', \AdminFlow\Core\Models\User::class);
+
                         $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
                         $roles = \AdminFlow\Core\Enums\Role::cases();
                         $stats = $userService->getStatistics();
@@ -62,6 +72,8 @@ Route::prefix('admin')
                     })->name('layout-a');
 
                     Route::get('layout-b', function (AdminFlow\Core\Services\UserService $userService) {
+                        \Illuminate\Support\Facades\Gate::authorize('viewAny', \AdminFlow\Core\Models\User::class);
+
                         $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
                         $roles = \AdminFlow\Core\Enums\Role::cases();
                         $stats = $userService->getStatistics();

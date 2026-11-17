@@ -217,4 +217,74 @@ class UserServiceTest extends TestCase
         $this->assertSame(2, $stats['active']);
         $this->assertSame(2, $stats['super_admin']);
     }
+
+    /**
+     * 测试在事务锁定后重新校验超管防御，防止并发提权竞态逃逸
+     */
+    public function test_toggle_active_guards_against_concurrency_race(): void
+    {
+        $actor = User::create([
+            'name' => '主超管',
+            'email' => 'master@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+        ]);
+
+        $staleTarget = User::create([
+            'name' => '普通目标',
+            'email' => 'target_race@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+
+        // 模拟另一并发事务在此时将该账号提拔为超管并已落库
+        User::query()
+            ->where('id', $staleTarget->id)
+            ->update([
+                'role' => Role::SUPER_ADMIN->value,
+                'is_admin' => true,
+            ]);
+
+        // 旧请求持有的 $staleTarget 内存模型角色仍为 VIEWER，但在事务内通过 lockForUpdate 查出最新角色并拦截
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('禁止停用超级管理员账号');
+
+        $this->userService->toggleActive($staleTarget, $actor);
+    }
+
+    public function test_delete_guards_against_concurrency_race(): void
+    {
+        $actor = User::create([
+            'name' => '主超管2',
+            'email' => 'master2@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+        ]);
+
+        $staleTarget = User::create([
+            'name' => '普通目标2',
+            'email' => 'target_race2@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+
+        // 模拟并发事务提拔为超管
+        User::query()
+            ->where('id', $staleTarget->id)
+            ->update([
+                'role' => Role::SUPER_ADMIN->value,
+                'is_admin' => true,
+            ]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('禁止删除超级管理员账号');
+
+        $this->userService->delete($staleTarget, $actor);
+    }
 }
