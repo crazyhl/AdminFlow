@@ -76,8 +76,10 @@ adminflow/
 
 ### Phase 1: Core Foundation & CMS Blog (In Progress)
 - [x] Monorepo package structure & Sail development environment.
-- [ ] Authentication, basic user CRUD, and preset role assignment UI.
-- [ ] Admin dashboard layout with Preline UI metric cards.
+- [x] Admin authentication, user management & preset role assignment (with policy guards, anti-privilege escalation & pessimistic locking).
+- [x] htmx integration for reactive interactions (seamless form swaps, 422 in-modal error rendering, global toast triggers).
+- [x] Admin dashboard layout, single-query aggregated metric cards & sanitized audit logging.
+- [x] Plugin boundary & permission decoupling (PermissionRegistry service & explicit provider loading).
 - [ ] CMS plugin: Markdown editor, safe rendering, local media library, nested comments.
 - [ ] Hugo blog data import and 301 URL redirect support.
 - [ ] Backup/restore drill and FrankenPHP deployment verification.
