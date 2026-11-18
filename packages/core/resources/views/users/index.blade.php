@@ -326,14 +326,12 @@
 
         <!-- 删除成员二次确认 -->
         @can('delete', $user)
-            <x-admin::confirm-dialog
+            <x-admin::delete-dialog
                 id="hs-modal-confirm-delete-{{ $user->id }}"
                 :action="route('admin.users.destroy', $user)"
-                method="DELETE"
                 title="确认永久删除该成员？"
-                :message="'成员「<strong>' . e($user->name) . '</strong>」的账号数据将被彻底移除，此操作<strong>无法撤销</strong>。'"
+                :item="$user->name"
                 confirmText="确认永久删除"
-                confirmColor="rose"
                 icon="bi-exclamation-triangle"
             />
         @endcan

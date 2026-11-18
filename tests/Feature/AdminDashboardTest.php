@@ -77,4 +77,42 @@ class AdminDashboardTest extends TestCase
         $response->assertDontSee('192.168.1.100');
         $response->assertSee('受限');
     }
+
+    public function test_sidebar_renders_registered_navigation_items_with_permission_filtering(): void
+    {
+        $admin = User::query()->create([
+            'name' => '超管导航员',
+            'email' => 'nav_admin@example.com',
+            'password' => Hash::make('Pass123456'),
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.dashboard'));
+        $response->assertOk();
+        // 验证由 CMS 动态注册的菜单成功渲染在侧栏中，且包含真实的 CMS 写作路由
+        $response->assertSee('创作工坊 (CMS 插件)');
+        $response->assertSee('Markdown 文章写作');
+        $response->assertSee(route('admin.cms.posts.index'));
+    }
+
+    public function test_guest_calling_navigation_registry_directly_is_denied_for_protected_items(): void
+    {
+        auth()->logout();
+
+        /** @var \AdminFlow\Core\Services\NavigationRegistry $registry */
+        $registry = app(\AdminFlow\Core\Services\NavigationRegistry::class);
+
+        $visibleSections = $registry->getVisibleSections();
+
+        // 验证受权限保护的分组在访客调用时被完全过滤，无可见项
+        $this->assertEmpty($visibleSections);
+        foreach ($visibleSections as $section) {
+            $this->assertNotSame('cms', $section['key']);
+            foreach ($section['items'] as $item) {
+                $this->assertNotSame('Markdown 文章写作', $item['title']);
+            }
+        }
+    }
 }

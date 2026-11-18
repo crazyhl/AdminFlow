@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use AdminFlow\Core\Enums\Role;
 use AdminFlow\Core\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -76,7 +77,7 @@ class AdminInitCommandTest extends TestCase
     }
 
     /**
-     * 测试使用 --force 允许重置已有管理员密码与信息
+     * 测试使用 --force 允许重置已有管理员密码与信息，并轮换记住令牌与撤销既有会话
      */
     public function test_admin_init_can_reset_existing_admin_with_force(): void
     {
@@ -86,6 +87,16 @@ class AdminInitCommandTest extends TestCase
             'password' => Hash::make('OldPassword123'),
             'is_admin' => true,
             'role' => Role::SUPER_ADMIN,
+        ]);
+        $existing->forceFill(['remember_token' => 'old_remember_token_string_12345'])->save();
+
+        DB::table('sessions')->insert([
+            'id' => 'session_admin_test_1',
+            'user_id' => $existing->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+            'payload' => 'serialized-payload',
+            'last_activity' => time(),
         ]);
 
         $this
@@ -100,6 +111,61 @@ class AdminInitCommandTest extends TestCase
         $existing->refresh();
         $this->assertSame('新管理员姓名', $existing->name);
         $this->assertTrue(Hash::check('NewSecr3t2026', $existing->password));
+        $this->assertNotSame('old_remember_token_string_12345', $existing->remember_token);
+        $this->assertNotNull($existing->remember_token);
+        $this->assertSame(0, DB::table('sessions')->where('user_id', $existing->id)->count());
+    }
+
+    /**
+     * 测试使用 --force 时拒绝匹配普通成员邮箱，防止提升与重新启用普通账号
+     */
+    public function test_admin_init_with_force_rejects_non_super_admin_user(): void
+    {
+        $member = User::create([
+            'name' => 'Regular Member',
+            'email' => 'member@example.com',
+            'password' => Hash::make('MemberPass123'),
+            'is_admin' => false,
+            'is_active' => false,
+            'role' => Role::EDITOR,
+        ]);
+
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN', '--force' => true])
+            ->expectsQuestion('请输入管理员姓名/昵称', '试图提权')
+            ->expectsQuestion('请输入管理员邮箱地址', 'member@example.com')
+            ->expectsOutput('该邮箱已被普通成员使用，密码重置仅作用于已有超级管理员。')
+            ->assertExitCode(1);
+
+        $member->refresh();
+        $this->assertFalse($member->is_admin);
+        $this->assertFalse($member->is_active);
+        $this->assertSame(Role::EDITOR, $member->role);
+        $this->assertSame('Regular Member', $member->name);
+    }
+
+    /**
+     * 测试英文环境下 --force 拦截普通成员账号
+     */
+    public function test_admin_init_with_force_rejects_non_super_admin_user_in_english(): void
+    {
+        User::create([
+            'name' => 'Viewer Member',
+            'email' => 'viewer@example.com',
+            'password' => Hash::make('ViewerPass123'),
+            'is_admin' => false,
+            'is_active' => true,
+            'role' => Role::VIEWER,
+        ]);
+
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'en', '--force' => true])
+            ->expectsQuestion('Please enter the administrator name', 'Hacker')
+            ->expectsQuestion('Please enter the administrator email address', 'viewer@example.com')
+            ->expectsOutput(
+                'This email belongs to a standard user. Password reset is restricted to existing super administrators.',
+            )
+            ->assertExitCode(1);
     }
 
     /**

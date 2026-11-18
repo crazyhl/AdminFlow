@@ -106,7 +106,9 @@ final class AuthController extends Controller
 
         // 认证成功：清除限流计数并重新生成 Session ID 防固化攻击
         RateLimiter::clear($throttleKey);
+        Auth::shouldUse('admin');
         $request->session()->regenerate();
+        $request->session()->put('password_hash_admin', $user->getAuthPassword());
 
         AuditLogger::record(
             action: 'auth.login_success',

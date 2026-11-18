@@ -15,25 +15,59 @@ final class HtmxResponse
      */
     public static function success(string $message): Response
     {
+        session()->flash('success', $message);
+
         return self::toast($message)->header('HX-Refresh', 'true');
     }
 
     /**
-     * 生成仅呼出 Toast 的 HTMX 响应（不强制触发整页刷新）
+     * 生成仅呼出 Toast 的 HTMX 响应（可附带额外自定义客户端事件，不强制触发整页刷新）
+     *
+     * @param array<string, mixed> $additionalEvents
      */
-    public static function toast(string $message, string $type = 'success'): Response
-    {
-        session()->flash($type, $message);
+    public static function toast(
+        string $message,
+        string $type = 'success',
+        array $additionalEvents = [],
+        int $status = 200,
+        mixed $content = '',
+    ): Response {
+        $payload = array_merge([
+            'showToast' => [
+                'message' => $message,
+                'type' => $type,
+            ],
+        ], $additionalEvents);
 
-        return response('')->header(
-            'HX-Trigger',
-            (string) json_encode([
-                'showToast' => [
-                    'message' => $message,
-                    'type' => $type,
-                ],
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-        );
+        $response = $content !== '' ? response($content, $status) : response('', $status);
+
+        return $response->header('HX-Trigger', (string) json_encode($payload, JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * 生成 HTMX 并发或业务冲突响应（HTTP 409 状态码，支持局部视图或无刷新提示与自定义事件）
+     *
+     * @param array<string, mixed> $viewData
+     * @param array<string, mixed> $additionalEvents
+     */
+    public static function conflict(
+        string $message,
+        ?string $view = null,
+        array $viewData = [],
+        array $additionalEvents = [],
+    ): Response {
+        $response = $view !== null
+            ? response()->view($view, $viewData, 409)
+            : response('', 409)->header('HX-Reswap', 'none');
+
+        $payload = array_merge([
+            'showToast' => [
+                'message' => $message,
+                'type' => 'error',
+            ],
+        ], $additionalEvents);
+
+        return $response->header('HX-Trigger', (string) json_encode($payload, JSON_THROW_ON_ERROR));
     }
 
     /**

@@ -54,6 +54,7 @@
             @if(in_array(strtoupper($method), ['PUT', 'PATCH', 'DELETE']))
                 @method($method)
             @endif
+            {{ $slot ?? '' }}
 
             <button type="button" class="w-full px-4 py-2 rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 text-xs font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors" data-hs-overlay="#{{ $id }}">
                 取消

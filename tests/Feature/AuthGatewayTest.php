@@ -222,4 +222,107 @@ class AuthGatewayTest extends TestCase
         $response->assertSessionHasErrors('email');
         $this->assertFalse(Auth::guard('admin')->check());
     }
+
+    /**
+     * 测试管理员密码变更后，既有会话在中间件核验时自动失效强制登出
+     */
+    public function test_session_invalidated_when_password_hash_changes(): void
+    {
+        $user = User::query()->create([
+            'name' => '改密测试员',
+            'email' => 'pwd_change@example.com',
+            'password' => Hash::make('OldSecr3t2026'),
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+            'is_active' => true,
+        ]);
+
+        // 正常登录建立会话，写入 password_hash_admin
+        $loginResponse = $this->post(route('admin.login.submit'), [
+            'email' => 'pwd_change@example.com',
+            'password' => 'OldSecr3t2026',
+        ]);
+        $loginResponse->assertRedirect(route('admin.dashboard'));
+        $this->assertTrue(Auth::guard('admin')->check());
+
+        // 访问后台正常
+        $dashboardResponse = $this->get('/admin');
+        $dashboardResponse->assertOk();
+
+        // 模拟通过命令行或后台重置了密码
+        $user->forceFill([
+            'password' => Hash::make('BrandNewP@ss2026'),
+        ])->save();
+
+        // 模拟跨请求场景：刷新测试进程单例 Guard 中的用户模型（使其反映 DB 中的最新改密结果）
+        Auth::guard('admin')->setUser($user->fresh());
+
+        // 使用已有会话继续请求后台，中间件比对密码哈希不一致，执行安全登出
+        $subsequentResponse = $this->get('/admin');
+        $subsequentResponse->assertRedirect(route('admin.login'));
+        $this->assertFalse(Auth::guard('admin')->check());
+    }
+
+    /**
+     * 测试缺少 password_hash_admin 标记的历史会话被强制拦截登出
+     */
+    public function test_legacy_session_without_password_hash_marker_is_rejected(): void
+    {
+        $user = User::query()->create([
+            'name' => '历史会话用户',
+            'email' => 'legacy_session@example.com',
+            'password' => Hash::make('Secr3tPass2026'),
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+            'is_active' => true,
+        ]);
+
+        $guardKey = Auth::guard('admin')->getName();
+
+        // 模拟缺少 password_hash_admin 标记的既有真实历史会话
+        $response = $this->withSession([
+            $guardKey => $user->id,
+        ])->get('/admin');
+
+        $response->assertRedirect(route('admin.login'));
+        $response->assertSessionHasErrors(['email' => '登录凭证已失效或密码已变更，请重新登录']);
+        $this->assertFalse(Auth::guard('admin')->check());
+    }
+
+    /**
+     * 测试有效「记住登录」Cookie 可以成功登入并自动补齐密码哈希会话标记
+     */
+    public function test_remember_me_cookie_authenticates_and_sets_password_hash_marker(): void
+    {
+        $user = User::query()->create([
+            'name' => '记住我用户',
+            'email' => 'remember_me@example.com',
+            'password' => Hash::make('RememberP@ss2026'),
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+            'is_active' => true,
+        ]);
+
+        // 勾选记住我登录
+        $loginResponse = $this->post(route('admin.login.submit'), [
+            'email' => 'remember_me@example.com',
+            'password' => 'RememberP@ss2026',
+            'remember' => '1',
+        ]);
+        $loginResponse->assertRedirect(route('admin.dashboard'));
+
+        // 获取记住登录 Cookie
+        $recallerCookieName = Auth::guard('admin')->getRecallerName();
+        $loginResponse->assertCookie($recallerCookieName);
+        $cookie = $loginResponse->getCookie($recallerCookieName);
+
+        // 模拟清空 Session，仅携带记住登录 Cookie 发起新的请求
+        $this->flushSession();
+        Auth::guard('admin')->forgetUser();
+
+        $response = $this->withCookie($recallerCookieName, $cookie->getValue())->get('/admin');
+        $response->assertOk();
+        $this->assertTrue(Auth::guard('admin')->check());
+        $this->assertSame($user->getAuthPassword(), session('password_hash_admin'));
+    }
 }

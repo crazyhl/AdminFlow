@@ -43,23 +43,20 @@ class UserService
         $query = User::query();
 
         $search = trim((string) ($filters['search'] ?? ''));
-        if ($search !== '') {
-            $query->where(static function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
+        $query->when($search !== '', static function ($q) use ($search): void {
+            $q->where(static function ($inner) use ($search): void {
+                $inner->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
             });
-        }
+        });
 
         $role = (string) ($filters['role'] ?? '');
-        if ($role !== '') {
-            $query->where('role', $role);
-        }
+        $query->when($role !== '', static fn($q) => $q->where('role', $role));
 
-        if (isset($filters['is_active']) && $filters['is_active'] !== '') {
-            $isActive = filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($isActive !== null) {
-                $query->where('is_active', $isActive);
-            }
-        }
+        $rawIsActive = $filters['is_active'] ?? '';
+        $isActive = $rawIsActive !== ''
+            ? filter_var($rawIsActive, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            : null;
+        $query->when($isActive !== null, static fn($q) => $q->where('is_active', $isActive));
 
         return $query->latest('id')->paginate($perPage);
     }
@@ -267,11 +264,36 @@ class UserService
     }
 
     /**
+     * 账号删除前业务扩展回调集合（容器单例生命周期，避免静态累积）
+     *
+     * @var list<callable(User, ?User): void>
+     */
+    protected array $beforeDeleteHooks = [];
+
+    /**
+     * 注册用户删除前扩展回调（供业务插件如 CMS 挂载内容级联保护等逻辑）
+     *
+     * @param callable(User, ?User): void $callback
+     */
+    public function beforeDelete(callable $callback): void
+    {
+        $this->beforeDeleteHooks[] = $callback;
+    }
+
+    /**
+     * 清空已注册的删除前扩展回调（主要供测试用例环境隔离）
+     */
+    public function clearBeforeDeleteHooks(): void
+    {
+        $this->beforeDeleteHooks = [];
+    }
+
+    /**
      * 删除用户账号
      */
     public function delete(User $target, ?User $actor = null): void
     {
-        DB::transaction(static function () use ($target, $actor): void {
+        DB::transaction(function () use ($target, $actor): void {
             /** @var User $lockedTarget */
             $lockedTarget = User::query()->lockForUpdate()->findOrFail($target->id);
 
@@ -281,6 +303,11 @@ class UserService
 
             if ($lockedTarget->isSuperAdmin()) {
                 throw new InvalidArgumentException('禁止删除超级管理员账号');
+            }
+
+            // 调度已注册的业务扩展点钩子（如 CMS 插件安全解绑作者逻辑）
+            foreach ($this->beforeDeleteHooks as $hook) {
+                $hook($lockedTarget, $actor);
             }
 
             $email = $lockedTarget->email;

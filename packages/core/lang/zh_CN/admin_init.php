@@ -11,6 +11,7 @@ return [
     'err_name_required' => '姓名不能为空。',
     'err_email_invalid' => '请输入合法的邮箱地址。',
     'err_email_exists' => '该邮箱已被注册，请更换其他邮箱。',
+    'err_not_super_admin' => '该邮箱已被普通成员使用，密码重置仅作用于已有超级管理员。',
     'err_password_too_short' => '密码长度至少为 8 位。',
     'err_password_weak' => '密码过于简单，必须同时包含字母和数字，且不能为常见弱密码。',
     'err_password_mismatch' => '两次输入的密码不一致，请重新操作。',

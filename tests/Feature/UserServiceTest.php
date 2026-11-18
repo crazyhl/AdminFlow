@@ -287,4 +287,48 @@ class UserServiceTest extends TestCase
 
         $this->userService->delete($staleTarget, $actor);
     }
+
+    public function test_before_delete_hooks_are_instance_scoped_and_do_not_leak_across_instances(): void
+    {
+        $serviceA = new UserService();
+        $serviceB = new UserService();
+
+        $hookExecuted = false;
+        $serviceA->beforeDelete(static function () use (&$hookExecuted): void {
+            $hookExecuted = true;
+        });
+
+        $actor = User::create([
+            'name' => '超管Hook',
+            'email' => 'hook_actor@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::SUPER_ADMIN,
+            'is_admin' => true,
+        ]);
+
+        $target = User::create([
+            'name' => '待删Hook目标',
+            'email' => 'hook_target@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+
+        // 使用 serviceB 执行删除，serviceA 上注册的 hook 绝不应该被调用
+        $serviceB->delete($target, $actor);
+        $this->assertFalse($hookExecuted);
+
+        // 使用 serviceA 删除另一账号，hook 正常触发
+        $target2 = User::create([
+            'name' => '待删Hook目标2',
+            'email' => 'hook_target2@example.com',
+            'password' => 'Pass123456',
+            'role' => Role::VIEWER,
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+        $serviceA->delete($target2, $actor);
+        $this->assertTrue($hookExecuted);
+    }
 }

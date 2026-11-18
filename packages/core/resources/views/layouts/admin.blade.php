@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full">
+<html lang="zh-CN" class="h-full bg-[#fbfbfa] dark:bg-[#191919]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', '控制台') · AdminFlow</title>
 
@@ -14,6 +15,8 @@
 
     <!-- 主题与侧边栏防闪烁加载控制 -->
     @include('adminflow-core::layouts.partials.theme-script')
+
+    @stack('styles')
 </head>
 <body class="h-full flex bg-[#fbfbfa] dark:bg-[#191919] text-stone-800 dark:text-stone-200 antialiased selection:bg-stone-200 dark:selection:bg-stone-700 transition-colors duration-150">
 
@@ -33,5 +36,7 @@
             @yield('content')
         </main>
     </div>
+
+    @stack('scripts')
 </body>
 </html>

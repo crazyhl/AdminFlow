@@ -59,29 +59,31 @@ Route::prefix('admin')
                     Route::get('/', [AuditLogController::class, 'index'])->name('index');
                 });
 
-            // 布局方案选型对比预览 (供用户直观审阅方案 A 与方案 B)
-            Route::prefix('preview')
-                ->name('admin.preview.')
-                ->group(function (): void {
-                    Route::get('layout-a', function (AdminFlow\Core\Services\UserService $userService) {
-                        \Illuminate\Support\Facades\Gate::authorize('viewAny', \AdminFlow\Core\Models\User::class);
+            // 布局方案选型对比预览 (仅在本地开发与测试环境中供方案评审)
+            if (app()->environment('local', 'testing')) {
+                Route::prefix('preview')
+                    ->name('admin.preview.')
+                    ->group(function (): void {
+                        Route::get('layout-a', function (AdminFlow\Core\Services\UserService $userService) {
+                            \Illuminate\Support\Facades\Gate::authorize('viewAny', \AdminFlow\Core\Models\User::class);
 
-                        $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
-                        $roles = \AdminFlow\Core\Enums\Role::cases();
-                        $stats = $userService->getStatistics();
+                            $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
+                            $roles = \AdminFlow\Core\Enums\Role::cases();
+                            $stats = $userService->getStatistics();
 
-                        return view('adminflow-core::preview.layout_a', compact('users', 'roles', 'stats'));
-                    })->name('layout-a');
+                            return view('adminflow-core::preview.layout_a', compact('users', 'roles', 'stats'));
+                        })->name('layout-a');
 
-                    Route::get('layout-b', function (AdminFlow\Core\Services\UserService $userService) {
-                        \Illuminate\Support\Facades\Gate::authorize('viewAny', \AdminFlow\Core\Models\User::class);
+                        Route::get('layout-b', function (AdminFlow\Core\Services\UserService $userService) {
+                            \Illuminate\Support\Facades\Gate::authorize('viewAny', \AdminFlow\Core\Models\User::class);
 
-                        $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
-                        $roles = \AdminFlow\Core\Enums\Role::cases();
-                        $stats = $userService->getStatistics();
+                            $users = \AdminFlow\Core\Models\User::query()->latest('id')->paginate(15);
+                            $roles = \AdminFlow\Core\Enums\Role::cases();
+                            $stats = $userService->getStatistics();
 
-                        return view('adminflow-core::preview.layout_b', compact('users', 'roles', 'stats'));
-                    })->name('layout-b');
-                });
+                            return view('adminflow-core::preview.layout_b', compact('users', 'roles', 'stats'));
+                        })->name('layout-b');
+                    });
+            }
         });
     });

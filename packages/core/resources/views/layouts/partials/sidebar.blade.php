@@ -45,24 +45,24 @@
                 </a>
             </div>
 
-            <div>
-                <div class="text-[11px] font-medium text-stone-400 dark:text-stone-500 px-2 mb-1.5 sidebar-section-title">创作工坊 (CMS 插件)</div>
-                <a href="#" class="sidebar-nav-link flex items-center gap-2.5 px-2.5 py-1.5 rounded-md font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60 transition-colors" title="Markdown 文章写作">
-                    <i class="bi bi-pen text-sm shrink-0"></i>
-                    <span class="sidebar-label truncate">Markdown 文章写作</span>
-                </a>
-                <a href="#" class="sidebar-nav-link flex items-center justify-between px-2.5 py-1.5 rounded-md font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60 mt-0.5 transition-colors" title="访客评论互动">
-                    <div class="flex items-center gap-2.5 overflow-hidden">
-                        <i class="bi bi-chat-quote text-sm shrink-0"></i>
-                        <span class="sidebar-label truncate">访客评论互动</span>
-                    </div>
-                    <span class="sidebar-badge w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                </a>
-                <a href="#" class="sidebar-nav-link flex items-center gap-2.5 px-2.5 py-1.5 rounded-md font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60 mt-0.5 transition-colors" title="图床媒体资源">
-                    <i class="bi bi-images text-sm shrink-0"></i>
-                    <span class="sidebar-label truncate">图床媒体资源</span>
-                </a>
-            </div>
+            @foreach($customSidebarSections ?? [] as $section)
+                <div>
+                    <div class="text-[11px] font-medium text-stone-400 dark:text-stone-500 px-2 mb-1.5 sidebar-section-title">{{ $section['title'] }}</div>
+                    @foreach($section['items'] as $item)
+                        <a href="{{ $item['url'] }}" class="sidebar-nav-link flex items-center justify-between px-2.5 py-1.5 rounded-md font-medium {{ $item['isActive'] ? 'bg-stone-200/70 dark:bg-stone-800 text-stone-900 dark:text-stone-100' : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-stone-800/60' }} transition-colors" title="{{ $item['title'] }}">
+                            <div class="flex items-center gap-2.5 overflow-hidden">
+                                <i class="bi {{ $item['icon'] }} text-sm shrink-0"></i>
+                                <span class="sidebar-label truncate">{{ $item['title'] }}</span>
+                            </div>
+                            @if(!empty($item['badge']))
+                                <span class="sidebar-badge text-[10px] bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-1.5 py-0.5 rounded font-mono shrink-0">
+                                    {{ $item['badge'] }}
+                                </span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            @endforeach
         </nav>
     </div>
 </aside>

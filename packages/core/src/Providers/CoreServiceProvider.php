@@ -9,6 +9,7 @@ use AdminFlow\Core\Models\User;
 use AdminFlow\Core\Policies\AuditLogPolicy;
 use AdminFlow\Core\Policies\UserPolicy;
 use AdminFlow\Core\Services\AuditLogger;
+use AdminFlow\Core\Services\NavigationRegistry;
 use AdminFlow\Core\Services\PermissionRegistry;
 use AdminFlow\Core\Services\UserService;
 use Illuminate\Routing\Router;
@@ -25,6 +26,8 @@ class CoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PermissionRegistry::class, static fn() => new PermissionRegistry());
+
+        $this->app->singleton(NavigationRegistry::class, static fn() => new NavigationRegistry());
 
         $this->app->singleton(AuditLogger::class, static fn() => new AuditLogger());
 
@@ -68,8 +71,14 @@ class CoreServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'adminflow-core');
 
         // 侧边栏公共视图合成器 (解耦 Blade 视图对 Model 的直接依赖)
-        View::composer('adminflow-core::layouts.partials.sidebar', static function (\Illuminate\View\View $view): void {
-            $view->with('sidebarUserCount', User::query()->count());
+        View::composer('adminflow-core::layouts.partials.sidebar', function (\Illuminate\View\View $view): void {
+            /** @var NavigationRegistry $navRegistry */
+            $navRegistry = $this->app->make(NavigationRegistry::class);
+
+            $view->with([
+                'sidebarUserCount' => User::query()->count(),
+                'customSidebarSections' => $navRegistry->getVisibleSections(),
+            ]);
         });
 
         // 加载后台路由

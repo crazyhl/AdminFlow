@@ -11,6 +11,7 @@ return [
     'err_name_required' => 'Name cannot be empty.',
     'err_email_invalid' => 'Please enter a valid email address.',
     'err_email_exists' => 'This email is already registered. Please use another one.',
+    'err_not_super_admin' => 'This email belongs to a standard user. Password reset is restricted to existing super administrators.',
     'err_password_too_short' => 'Password must be at least 8 characters long.',
     'err_password_weak' => 'Password is too weak. It must contain both letters and numbers, and not be a common weak password.',
     'err_password_mismatch' => 'The passwords do not match. Please try again.',

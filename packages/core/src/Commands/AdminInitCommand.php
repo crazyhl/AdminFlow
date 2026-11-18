@@ -7,8 +7,11 @@ use AdminFlow\Core\Models\User;
 use AdminFlow\Core\Services\AuditLogger;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -84,10 +87,18 @@ class AdminInitCommand extends Command
         }
 
         $existingUser = User::query()->where('email', $email)->first();
-        if ($existingUser && !$this->option('force')) {
-            $this->error($this->t('err_email_exists'));
+        if ($existingUser) {
+            if (!$existingUser->isSuperAdmin()) {
+                $this->error($this->t('err_not_super_admin'));
 
-            return self::FAILURE;
+                return self::FAILURE;
+            }
+
+            if (!$this->option('force')) {
+                $this->error($this->t('err_email_exists'));
+
+                return self::FAILURE;
+            }
         }
 
         // 3. 输入密码（隐式输入）
@@ -131,13 +142,26 @@ class AdminInitCommand extends Command
 
         // 5. 创建或重置超级管理员
         if ($existingUser) {
-            $existingUser->update([
+            $existingUser->forceFill([
                 'name' => trim((string) $name),
                 'password' => Hash::make($password),
                 'is_admin' => true,
                 'is_active' => true,
                 'role' => Role::SUPER_ADMIN,
-            ]);
+                'remember_token' => Str::random(60),
+            ])->save();
+
+            // 轮换 remember_token 以使免密登录凭证失效，并清理数据库会话表中已知 user_id 的会话记录
+            // 其他既有会话（如独立 Guard 或加密会话）在后续访问时由 AuthenticateAdmin 中间件校验密码哈希一致性自动强退
+            $sessionTable = config('session.table', 'sessions');
+            if (
+                is_string($sessionTable)
+                && Schema::hasTable($sessionTable)
+                && Schema::hasColumn($sessionTable, 'user_id')
+            ) {
+                DB::table($sessionTable)->where('user_id', $existingUser->id)->delete();
+            }
+
             $admin = $existingUser;
         }
 
