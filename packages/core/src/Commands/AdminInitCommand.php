@@ -83,7 +83,8 @@ class AdminInitCommand extends Command
             return self::FAILURE;
         }
 
-        if (User::query()->where('email', $email)->exists()) {
+        $existingUser = User::query()->where('email', $email)->first();
+        if ($existingUser && !$this->option('force')) {
             $this->error($this->t('err_email_exists'));
 
             return self::FAILURE;
@@ -128,16 +129,29 @@ class AdminInitCommand extends Command
             return self::FAILURE;
         }
 
-        // 5. 创建超级管理员
-        /** @var User $admin */
-        $admin = User::query()->create([
-            'name' => trim((string) $name),
-            'email' => trim((string) $email),
-            'password' => Hash::make($password),
-            'is_admin' => true,
-            'is_active' => true,
-            'role' => Role::SUPER_ADMIN,
-        ]);
+        // 5. 创建或重置超级管理员
+        if ($existingUser) {
+            $existingUser->update([
+                'name' => trim((string) $name),
+                'password' => Hash::make($password),
+                'is_admin' => true,
+                'is_active' => true,
+                'role' => Role::SUPER_ADMIN,
+            ]);
+            $admin = $existingUser;
+        }
+
+        if (!isset($admin)) {
+            /** @var User $admin */
+            $admin = User::query()->create([
+                'name' => trim((string) $name),
+                'email' => trim((string) $email),
+                'password' => Hash::make($password),
+                'is_admin' => true,
+                'is_active' => true,
+                'role' => Role::SUPER_ADMIN,
+            ]);
+        }
 
         // 记录操作审计日志
         AuditLogger::record(

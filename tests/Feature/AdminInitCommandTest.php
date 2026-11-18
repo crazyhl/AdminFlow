@@ -76,6 +76,33 @@ class AdminInitCommandTest extends TestCase
     }
 
     /**
+     * 测试使用 --force 允许重置已有管理员密码与信息
+     */
+    public function test_admin_init_can_reset_existing_admin_with_force(): void
+    {
+        $existing = User::create([
+            'name' => 'Existing Admin',
+            'email' => 'existing@example.com',
+            'password' => Hash::make('OldPassword123'),
+            'is_admin' => true,
+            'role' => Role::SUPER_ADMIN,
+        ]);
+
+        $this
+            ->artisan('adminflow:admin-init', ['--locale' => 'zh_CN', '--force' => true])
+            ->expectsQuestion('请输入管理员姓名/昵称', '新管理员姓名')
+            ->expectsQuestion('请输入管理员邮箱地址', 'existing@example.com')
+            ->expectsQuestion('请输入管理员密码（至少 8 位，包含字母与数字）', 'NewSecr3t2026')
+            ->expectsQuestion('请再次输入密码以确认', 'NewSecr3t2026')
+            ->expectsOutput('超级管理员账号 [existing@example.com] 创建成功！')
+            ->assertExitCode(0);
+
+        $existing->refresh();
+        $this->assertSame('新管理员姓名', $existing->name);
+        $this->assertTrue(Hash::check('NewSecr3t2026', $existing->password));
+    }
+
+    /**
      * 测试弱密码被拒绝拦截
      */
     public function test_admin_init_rejects_weak_password(): void
