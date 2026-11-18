@@ -15,8 +15,13 @@
   <img src="https://img.shields.io/badge/UI-Tailwind%20%2B%20Preline-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind UI">
   <img src="https://img.shields.io/badge/%E4%BA%A4%E4%BA%92-htmx-336699?style=flat-square" alt="htmx">
   <img src="https://img.shields.io/badge/%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83-FrankenPHP-00ADD8?style=flat-square" alt="FrankenPHP">
+  <img src="https://img.shields.io/badge/Development-100%25%20Vibe%20Coding-8A2BE2?style=flat-square" alt="Vibe Coding">
   <img src="https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-green.svg?style=flat-square" alt="License">
 </p>
+
+> [!NOTE]
+> **🤖 纯 Vibe Coding 实践声明**：
+> 本项目是完全基于 **Vibe Coding**（AI 深度协同、全流程自然语言驱动）构建的纯 AI 编写工程实践。从架构规范设计、插件解耦体系、并发行级锁控制、HTMX 局部置换，到 Mago 统一静态检查与全量自动化测试套件，均由人类提供工程把控与设计约束、AI 全程编写落地。旨在探索在严密工程规范约束下，纯 Vibe Coding 所能达到的高可用、高可靠企业级代码水准。
 
 ---
 

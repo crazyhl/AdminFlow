@@ -15,8 +15,13 @@
   <img src="https://img.shields.io/badge/UI-Tailwind%20%2B%20Preline-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind UI">
   <img src="https://img.shields.io/badge/Interactivity-htmx-336699?style=flat-square" alt="htmx">
   <img src="https://img.shields.io/badge/Runtime-FrankenPHP-00ADD8?style=flat-square" alt="FrankenPHP">
+  <img src="https://img.shields.io/badge/Development-100%25%20Vibe%20Coding-8A2BE2?style=flat-square" alt="Vibe Coding">
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License">
 </p>
+
+> [!NOTE]
+> **🤖 100% Vibe Coding Statement**:
+> This project is built entirely through **Vibe Coding** (AI-native, prompt-driven engineering). Guided by human engineering discipline and strict architectural constraints, every component—including core modularization, optimistic locking, HTMX interactions, Mago static analysis, and full automated test suites—was written and refined end-to-end with AI agents, demonstrating how pure vibe coding can deliver robust, production-ready enterprise software.
 
 ---
 
