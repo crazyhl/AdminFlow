@@ -148,6 +148,88 @@
     margin: 0.5rem 0 !important;
 }
 
+/* 列表项紧凑排版：如 <br> 般的紧凑距离，消除默认膨胀的段间距 */
+.prose ul > li, #markdown-preview ul > li,
+.prose ol > li, #markdown-preview ol > li {
+    margin-top: 0.125rem !important;
+    margin-bottom: 0.125rem !important;
+    line-height: 1.6 !important;
+}
+
+.prose li > p, #markdown-preview li > p {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.prose li > p + p, #markdown-preview li > p + p {
+    margin-top: 0.35rem !important;
+}
+
+/* 任务列表 (Todo List)：彻底移除列表圆点，复选框与文本紧凑对齐 */
+.prose li:has(input[type="checkbox"]),
+#markdown-preview li:has(input[type="checkbox"]) {
+    list-style: none !important;
+    list-style-type: none !important;
+}
+
+.prose li:has(input[type="checkbox"])::marker,
+#markdown-preview li:has(input[type="checkbox"])::marker {
+    content: "" !important;
+    display: none !important;
+}
+
+.prose li input[type="checkbox"],
+#markdown-preview li input[type="checkbox"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 0.95rem !important;
+    height: 0.95rem !important;
+    border: 1.5px solid #a8a29e !important;
+    border-radius: 0.25rem !important;
+    background-color: transparent !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: -0.125rem !important;
+    margin: 0 0.45rem 0 -1.25rem !important;
+    cursor: default !important;
+    position: relative !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+.dark .prose li input[type="checkbox"],
+.dark #markdown-preview li input[type="checkbox"] {
+    border-color: #78716c !important;
+}
+
+.prose li input[type="checkbox"]:checked,
+#markdown-preview li input[type="checkbox"]:checked {
+    background-color: #292524 !important;
+    border-color: #292524 !important;
+}
+
+.dark .prose li input[type="checkbox"]:checked,
+.dark #markdown-preview li input[type="checkbox"]:checked {
+    background-color: #e7e5e4 !important;
+    border-color: #e7e5e4 !important;
+}
+
+.prose li input[type="checkbox"]:checked::after,
+#markdown-preview li input[type="checkbox"]:checked::after {
+    content: "" !important;
+    display: block !important;
+    width: 0.28rem !important;
+    height: 0.5rem !important;
+    border: solid white !important;
+    border-width: 0 2px 2px 0 !important;
+    transform: rotate(45deg) translate(-0.5px, -1px) !important;
+}
+
+.dark .prose li input[type="checkbox"]:checked::after,
+.dark #markdown-preview li input[type="checkbox"]:checked::after {
+    border-color: #191919 !important;
+}
+
 .prose table, #markdown-preview table {
     width: 100% !important;
     border-collapse: collapse !important;
