@@ -16,9 +16,17 @@
     <!-- 主题与侧边栏防闪烁加载控制 -->
     @include('adminflow-core::layouts.partials.theme-script')
 
+    <!-- 禁用 HTMX 历史 DOM 快照缓存并清理历史残存快照，强制浏览器后退时重新经服务端鉴权 -->
+    <meta name="htmx-config" content='{"historyCacheSize": 0, "refreshOnHistoryMiss": true}'>
+    <script>
+        try {
+            sessionStorage.removeItem('htmx-history-cache');
+        } catch (_) {}
+    </script>
+
     @stack('styles')
 </head>
-<body class="h-full flex bg-[#fbfbfa] dark:bg-[#191919] text-stone-800 dark:text-stone-200 antialiased selection:bg-stone-200 dark:selection:bg-stone-700 transition-colors duration-150">
+<body hx-history="false" class="h-full flex bg-[#fbfbfa] dark:bg-[#191919] text-stone-800 dark:text-stone-200 antialiased selection:bg-stone-200 dark:selection:bg-stone-700 transition-colors duration-150">
 
     <!-- 统一侧边栏 -->
     @include('adminflow-core::layouts.partials.sidebar')

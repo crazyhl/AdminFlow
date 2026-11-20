@@ -66,6 +66,7 @@ class PostRequest extends FormRequest
             'lock_version.required' => '缺少版本号，无法进行并发安全校验',
             'type.required' => '内容类型必须指定',
             'status.required' => '发布状态必须指定',
+            'published_at.date' => '发布时间格式不正确',
         ];
     }
 

@@ -1,4 +1,8 @@
-<div id="posts-table-card">
+<div id="posts-table-card" class="space-y-4">
+    @if(!empty($filterErrors))
+        @include('adminflow-cms::posts.partials.alert-errors', ['errors' => $filterErrors])
+    @endif
+
     <!-- 内容数据表格 -->
     <x-admin::table-card>
         <div class="overflow-x-auto">
@@ -24,9 +28,15 @@
                                             <i class="bi bi-pin-angle-fill text-xs"></i>
                                         </span>
                                     @endif
-                                    <a href="{{ route('admin.cms.posts.edit', $post) }}" class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                        {{ $post->title }}
-                                    </a>
+                                    @can('update', $post)
+                                        <a href="{{ route('admin.cms.posts.edit', $post) }}" class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                            {{ $post->title }}
+                                        </a>
+                                    @else
+                                        <a href="{{ route('admin.cms.posts.preview', $post) }}" class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="查看预览">
+                                            {{ $post->title }}
+                                        </a>
+                                    @endcan
                                 </div>
                                 <div class="text-[11px] text-stone-400 font-mono mt-0.5 flex items-center gap-1.5">
                                     <span>/{{ $post->type->value === 'page' ? 'p' : 'posts' }}/{{ $post->slug }}</span>

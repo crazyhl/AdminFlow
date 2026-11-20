@@ -8,6 +8,7 @@ use AdminFlow\CMS\Exceptions\ConcurrencyConflictException;
 use AdminFlow\CMS\Http\Requests\PostRequest;
 use AdminFlow\CMS\Models\Post;
 use AdminFlow\CMS\Services\MarkdownService;
+use AdminFlow\CMS\Services\PostDataResolver;
 use AdminFlow\CMS\Services\PostService;
 use AdminFlow\Core\Http\Responses\HtmxResponse;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -25,19 +28,70 @@ final class PostController extends Controller
     public function __construct(
         private readonly PostService $postService,
         private readonly MarkdownService $markdownService,
+        private readonly PostDataResolver $postDataResolver,
     ) {}
 
     /**
      * 内容管理列表（支持状态与类型筛选）
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|Response|RedirectResponse
     {
         Gate::authorize('viewAny', Post::class);
 
+        $validator = Validator::make(
+            $request->query(),
+            [
+                'search' => ['nullable', 'string', 'max:255'],
+                'status' => ['nullable', 'string', Rule::enum(PostStatus::class)],
+                'type' => ['nullable', 'string', Rule::enum(PostType::class)],
+            ],
+            [
+                'search.string' => '搜索参数格式不正确，必须为纯文本',
+                'status.Illuminate\Validation\Rules\Enum' => '选择的状态不合法',
+                'type.Illuminate\Validation\Rules\Enum' => '选择的类型不合法',
+            ],
+        );
+
+        if ($validator->fails()) {
+            if ($request->hasHeader('HX-Request') && !$request->hasHeader('HX-History-Restore-Request')) {
+                $errorMsg = $validator->errors()->first() ?? '筛选参数不合法';
+                $filterErrors = $validator->errors()->all();
+
+                $posts = $this->postService->paginate([], perPage: 15);
+                $statuses = PostStatus::cases();
+                $types = PostType::cases();
+                $filters = ['search' => null, 'status' => null, 'type' => null];
+
+                $content = view('adminflow-cms::posts.partials.table', compact(
+                    'posts',
+                    'filters',
+                    'statuses',
+                    'types',
+                    'filterErrors',
+                ))->render();
+
+                return response($content, 422)
+                    ->header('HX-Push-Url', 'false')
+                    ->header(
+                        'HX-Trigger',
+                        (string) json_encode([
+                            'showToast' => [
+                                'message' => $errorMsg,
+                                'type' => 'error',
+                            ],
+                        ], JSON_THROW_ON_ERROR),
+                    );
+            }
+
+            return redirect()->route('admin.cms.posts.index')->with('error', '筛选参数不合法，已重置为默认列表');
+        }
+
+        $validated = $validator->validated();
+
         $filters = [
-            'search' => $request->query('search'),
-            'status' => $request->query('status'),
-            'type' => $request->query('type'),
+            'search' => $validated['search'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'type' => $validated['type'] ?? null,
         ];
 
         $posts = $this->postService->paginate($filters, perPage: 15);
@@ -80,6 +134,10 @@ final class PostController extends Controller
     public function store(PostRequest $request): Response|RedirectResponse
     {
         Gate::authorize('create', Post::class);
+
+        if ($request->input('status') === PostStatus::PUBLISHED->value) {
+            Gate::authorize('publish', Post::class);
+        }
 
         /** @var \AdminFlow\Core\Models\User $user */
         $user = Auth::user();
@@ -125,6 +183,14 @@ final class PostController extends Controller
     public function update(PostRequest $request, Post $post): Response|RedirectResponse|JsonResponse
     {
         Gate::authorize('update', $post);
+
+        if ($this->postDataResolver->requiresPublishAuthorization(
+            $post,
+            $request->input('status'),
+            $request->input('published_at'),
+        )) {
+            Gate::authorize('publish', $post);
+        }
 
         $expectedVersion = (int) $request->input('lock_version');
 

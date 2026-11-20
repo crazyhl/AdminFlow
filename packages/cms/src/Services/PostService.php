@@ -35,18 +35,21 @@ class PostService
     {
         $query = Post::query()->with('author');
 
-        $search = trim((string) ($filters['search'] ?? ''));
+        $rawSearch = $filters['search'] ?? null;
+        $search = is_string($rawSearch) ? trim($rawSearch) : '';
         $query->when($search !== '', static function ($q) use ($search): void {
             $q->where(static function ($inner) use ($search): void {
                 $inner->where('title', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%");
             });
         });
 
-        $status = (string) ($filters['status'] ?? '');
-        $query->when($status !== '', static fn($q) => $q->where('status', $status));
+        $rawStatus = $filters['status'] ?? null;
+        $status = is_string($rawStatus) ? PostStatus::tryFrom($rawStatus)?->value : null;
+        $query->when($status !== null, static fn($q) => $q->where('status', $status));
 
-        $type = (string) ($filters['type'] ?? '');
-        $query->when($type !== '', static fn($q) => $q->where('type', $type));
+        $rawType = $filters['type'] ?? null;
+        $type = is_string($rawType) ? PostType::tryFrom($rawType)?->value : null;
+        $query->when($type !== null, static fn($q) => $q->where('type', $type));
 
         return $query->orderByDesc('is_pinned')->orderByDesc('created_at')->paginate($perPage)->withQueryString();
     }
@@ -88,24 +91,48 @@ class PostService
     {
         $data = $this->dataResolver->preRenderMarkdown($data, $this->markdownService);
         $providedSlug = trim((string) ($data['slug'] ?? ''));
-        $isCustomSlug = $providedSlug !== '';
-        $maxAttempts = $isCustomSlug ? 1 : 3;
+        $customSlug = $providedSlug !== '' ? $providedSlug : null;
 
-        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        if ($customSlug !== null) {
+            return $this->createWithCustomSlug($data, $author, $customSlug);
+        }
+
+        return $this->createWithAutoSlug($data, $author);
+    }
+
+    /**
+     * 手填固定链接创建（冲突直接返回校验异常）
+     *
+     * @param array<string, mixed> $data
+     * @throws ValidationException
+     */
+    private function createWithCustomSlug(array $data, User $author, string $customSlug): Post
+    {
+        try {
+            return $this->executeCreateTransaction($data, $author, $customSlug);
+        } catch (QueryException $e) {
+            if ($this->slugService->isUniqueViolation($e)) {
+                throw ValidationException::withMessages([
+                    'slug' => '该固定链接已被其他内容占用，请更换',
+                ]);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * 自动生成固定链接创建（遇唯一键冲突有限重试）
+     *
+     * @param array<string, mixed> $data
+     */
+    private function createWithAutoSlug(array $data, User $author): Post
+    {
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
             try {
-                return $this->executeCreateTransaction($data, $author, $isCustomSlug ? $providedSlug : null);
+                return $this->executeCreateTransaction($data, $author, null);
             } catch (QueryException $e) {
-                if (!$this->slugService->isUniqueViolation($e)) {
-                    throw $e;
-                }
-
-                if ($isCustomSlug) {
-                    throw ValidationException::withMessages([
-                        'slug' => '该固定链接已被其他内容占用，请更换',
-                    ]);
-                }
-
-                if ($attempt >= $maxAttempts) {
+                if (!$this->slugService->isUniqueViolation($e) || $attempt >= 3) {
                     throw $e;
                 }
 
@@ -124,27 +151,8 @@ class PostService
     private function executeCreateTransaction(array $data, User $author, ?string $customSlug = null): Post
     {
         return DB::transaction(function () use ($data, $author, $customSlug): Post {
-            $slug = $this->dataResolver->resolveCreateSlug($data['title'], $customSlug, $this->slugService);
-
-            $type = $this->dataResolver->resolveType($data['type'] ?? null);
-            $status = $this->dataResolver->resolveStatus($data['status'] ?? null);
-            $publishedAt = $this->dataResolver->resolvePublishedAt($status, $data['published_at'] ?? null);
-
-            $post = Post::query()->create([
-                'user_id' => $author->id,
-                'title' => trim($data['title']),
-                'slug' => $slug,
-                'summary' => isset($data['summary']) ? trim((string) $data['summary']) : null,
-                'body_markdown' => (string) ($data['body_markdown'] ?? ''),
-                'body_html' => (string) ($data['body_html'] ?? ''),
-                'cover_image_url' => isset($data['cover_image_url']) ? trim((string) $data['cover_image_url']) : null,
-                'type' => $type,
-                'status' => $status,
-                'published_at' => $publishedAt,
-                'is_pinned' => (bool) ($data['is_pinned'] ?? false),
-                'allow_comments' => (bool) ($data['allow_comments'] ?? true),
-                'lock_version' => 1,
-            ]);
+            $attributes = $this->dataResolver->resolveCreateAttributes($data, $author, $customSlug, $this->slugService);
+            $post = Post::query()->create($attributes);
 
             AuditLogger::record(
                 action: 'cms.posts.create',

@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('cover_image_url')->nullable();
             $table->string('type', 20)->default('post')->index();
             $table->string('status', 20)->default('draft')->index();
-            $table->timestamp('published_at')->nullable()->index();
+            $table->dateTime('published_at')->nullable()->index();
             $table->boolean('is_pinned')->default(false)->index();
             $table->boolean('allow_comments')->default(true);
             $table->unsignedBigInteger('lock_version')->default(1);

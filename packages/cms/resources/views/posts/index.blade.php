@@ -96,6 +96,8 @@
                    hx-target="#posts-table-card"
                    hx-swap="outerHTML"
                    hx-push-url="true"
+                   hx-on::after-request="if (event.detail.successful) this.remove()"
+                   onclick="const f = this.closest('form'); if (f) { f.reset(); f.querySelectorAll('input[name=search]').forEach(el => el.value = ''); f.querySelectorAll('select').forEach(el => el.value = ''); } this.addEventListener('htmx:afterRequest', (e) => { if (e.detail.successful) this.remove(); }, { once: true });"
                    class="text-xs text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors">
                     重置
                 </a>

@@ -5,21 +5,20 @@ namespace AdminFlow\CMS\Services;
 use AdminFlow\CMS\Enums\PostStatus;
 use AdminFlow\CMS\Enums\PostType;
 use AdminFlow\CMS\Models\Post;
+use AdminFlow\CMS\Services\Concerns\AppliesPostUpdates;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class PostDataResolver
 {
+    use AppliesPostUpdates;
+
     /**
      * 解析内容类型枚举
      */
     public function resolveType(mixed $type): PostType
     {
-        if ($type instanceof PostType) {
-            return $type;
-        }
-
-        return PostType::tryFrom((string) $type) ?? PostType::POST;
+        return $type instanceof PostType ? $type : PostType::tryFrom((string) $type) ?? PostType::POST;
     }
 
     /**
@@ -27,11 +26,7 @@ class PostDataResolver
      */
     public function resolveStatus(mixed $status): PostStatus
     {
-        if ($status instanceof PostStatus) {
-            return $status;
-        }
-
-        return PostStatus::tryFrom((string) $status) ?? PostStatus::DRAFT;
+        return $status instanceof PostStatus ? $status : PostStatus::tryFrom((string) $status) ?? PostStatus::DRAFT;
     }
 
     /**
@@ -72,34 +67,6 @@ class PostDataResolver
     }
 
     /**
-     * 更新基本标题与固定链接
-     *
-     * @param array<string, mixed> $data
-     */
-    protected function updateBasicInfo(Post $post, array $data): void
-    {
-        if (isset($data['title'])) {
-            $post->title = trim((string) $data['title']);
-        }
-
-        if (isset($data['slug'])) {
-            $newSlug = trim((string) $data['slug']);
-            if ($newSlug !== $post->slug) {
-                if (Post::query()->where('slug', $newSlug)->where('id', '!=', $post->id)->exists()) {
-                    throw ValidationException::withMessages([
-                        'slug' => "固定链接 [{$newSlug}] 已被其他内容占用",
-                    ]);
-                }
-                $post->slug = $newSlug;
-            }
-        }
-
-        if (array_key_exists('summary', $data)) {
-            $post->summary = $data['summary'] !== null ? trim((string) $data['summary']) : null;
-        }
-    }
-
-    /**
      * 提前渲染 Markdown 正文，缩短写操作数据库行锁持有时间
      *
      * @param array<string, mixed> $data
@@ -115,65 +82,70 @@ class PostDataResolver
     }
 
     /**
-     * 更新正文与媒体属性
+     * 解析新建文章所需的基础属性
      *
      * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
-    protected function updateContentAndMedia(Post $post, array $data, MarkdownService $markdownService): void
+    public function resolveCreateAttributes(
+        array $data,
+        \AdminFlow\Core\Models\User $author,
+        ?string $customSlug,
+        PostSlugService $slugService,
+    ): array {
+        $status = $this->resolveStatus($data['status'] ?? null);
+
+        return [
+            'user_id' => $author->id,
+            'title' => trim($data['title']),
+            'slug' => $this->resolveCreateSlug($data['title'], $customSlug, $slugService),
+            'summary' => $this->resolveNullableString($data['summary'] ?? null),
+            'body_markdown' => (string) ($data['body_markdown'] ?? ''),
+            'body_html' => (string) ($data['body_html'] ?? ''),
+            'cover_image_url' => $this->resolveNullableString($data['cover_image_url'] ?? null),
+            'type' => $this->resolveType($data['type'] ?? null),
+            'status' => $status,
+            'published_at' => $this->resolvePublishedAt($status, $data['published_at'] ?? null),
+            'is_pinned' => (bool) ($data['is_pinned'] ?? false),
+            'allow_comments' => (bool) ($data['allow_comments'] ?? true),
+            'lock_version' => 1,
+        ];
+    }
+
+    private function resolveNullableString(mixed $value): ?string
     {
-        if (isset($data['body_markdown'])) {
-            $post->body_markdown = (string) $data['body_markdown'];
-            $post->body_html = isset($data['body_html'])
-                ? (string) $data['body_html']
-                : $markdownService->render($post->body_markdown);
-        }
-
-        if (array_key_exists('cover_image_url', $data)) {
-            $post->cover_image_url = $data['cover_image_url'] !== null ? trim((string) $data['cover_image_url']) : null;
-        }
-
-        if (isset($data['type'])) {
-            $post->type = $this->resolveType($data['type']);
-        }
+        return $value !== null && trim((string) $value) !== '' ? trim((string) $value) : null;
     }
 
     /**
-     * 更新发布状态与行为开关
-     *
-     * @param array<string, mixed> $data
+     * 判断是否修改了已发布内容的发布时间
      */
-    protected function updatePublishAndSettings(Post $post, array $data): void
+    public function isPublishedAtModified(Post $post, ?string $inputDate): bool
     {
-        if (isset($data['status'])) {
-            $post->status = $this->resolveStatus($data['status']);
+        if ($inputDate === null || trim($inputDate) === '') {
+            return false;
         }
 
-        if (array_key_exists('published_at', $data)) {
-            $post->published_at = $this->resolvePublishedAt($post->status, $data['published_at'], $post->published_at);
+        try {
+            $parsed = Carbon::parse($inputDate);
+        } catch (\Throwable) {
+            return false;
         }
 
-        if ($post->status === PostStatus::PUBLISHED && $post->published_at === null) {
-            $post->published_at = Carbon::now();
-        }
-
-        if (isset($data['is_pinned'])) {
-            $post->is_pinned = (bool) $data['is_pinned'];
-        }
-
-        if (isset($data['allow_comments'])) {
-            $post->allow_comments = (bool) $data['allow_comments'];
-        }
+        return $post->published_at?->format('Y-m-d H:i') !== $parsed->format('Y-m-d H:i');
     }
 
     /**
-     * 将业务更新属性映射至模型
-     *
-     * @param array<string, mixed> $data
+     * 校验更新操作是否涉及发布授权（状态变更或修改已发布内容的发布时间）
      */
-    public function applyUpdates(Post $post, array $data, MarkdownService $markdownService): void
+    public function requiresPublishAuthorization(Post $post, mixed $newStatus, ?string $newPublishedAt): bool
     {
-        $this->updateBasicInfo($post, $data);
-        $this->updateContentAndMedia($post, $data, $markdownService);
-        $this->updatePublishAndSettings($post, $data);
+        $newIsPublished = $newStatus === PostStatus::PUBLISHED || $newStatus === PostStatus::PUBLISHED->value;
+        $isStatusToggled = $newIsPublished !== ($post->status === PostStatus::PUBLISHED);
+        $isPublishDateModified =
+            ($post->status === PostStatus::PUBLISHED || $newIsPublished)
+            && $this->isPublishedAtModified($post, $newPublishedAt);
+
+        return $isStatusToggled || $isPublishDateModified;
     }
 }

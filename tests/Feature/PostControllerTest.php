@@ -8,6 +8,7 @@ use AdminFlow\CMS\Models\Post;
 use AdminFlow\Core\Enums\Role;
 use AdminFlow\Core\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 class PostControllerTest extends TestCase
@@ -815,5 +816,269 @@ class PostControllerTest extends TestCase
         $response->assertUnprocessable();
         $response->assertHeader('HX-Trigger');
         $this->assertStringContainsString('已被其他内容占用', (string) $response->getContent());
+    }
+
+    public function test_post_creation_with_future_date_2040_succeeds_without_error(): void
+    {
+        $response = $this->actingAs($this->editor, 'admin')->post(route('admin.cms.posts.store'), [
+            'title' => '远期发布文章',
+            'body_markdown' => '正文内容',
+            'type' => 'post',
+            'status' => 'draft',
+            'published_at' => '2040-01-01 12:00:00',
+        ]);
+
+        $post = Post::query()->where('title', '远期发布文章')->firstOrFail();
+        $response->assertRedirect(route('admin.cms.posts.edit', $post));
+        $this->assertDatabaseHas('cms_posts', [
+            'title' => '远期发布文章',
+            'published_at' => '2040-01-01 12:00:00',
+        ]);
+    }
+
+    public function test_viewer_sees_preview_link_instead_of_403_edit_link(): void
+    {
+        $post = Post::create([
+            'user_id' => $this->editor->id,
+            'title' => '权限隔离测试文章',
+            'slug' => 'permission-test-post',
+            'body_markdown' => '正文',
+            'type' => PostType::POST,
+            'status' => PostStatus::PUBLISHED,
+            'lock_version' => 1,
+        ]);
+
+        // 1. 列表页：只读访客看到的是 preview 链接，而非 edit 链接
+        $indexResponse = $this->actingAs($this->viewer, 'admin')->get(route('admin.cms.posts.index'));
+        $indexResponse->assertOk();
+        $indexContent = (string) $indexResponse->getContent();
+        $this->assertStringContainsString(route('admin.cms.posts.preview', $post), $indexContent);
+        $this->assertStringNotContainsString(route('admin.cms.posts.edit', $post), $indexContent);
+
+        // 2. 预览页：只读访客看到的是「返回列表」，而非「返回编辑」
+        $previewResponse = $this->actingAs($this->viewer, 'admin')->get(route('admin.cms.posts.preview', $post));
+        $previewResponse->assertOk();
+        $previewContent = (string) $previewResponse->getContent();
+        $this->assertStringContainsString('返回列表', $previewContent);
+        $this->assertStringNotContainsString('返回编辑', $previewContent);
+    }
+
+    public function test_invalid_filter_parameters_handling(): void
+    {
+        // 1. 普通 HTML 请求传入非法筛选（如 search 数组），重定向至无筛选列表并携带提示
+        $htmlResponse = $this->actingAs($this->viewer, 'admin')->get(route('admin.cms.posts.index', ['search' => [
+            'test',
+        ]]));
+        $htmlResponse->assertRedirect(route('admin.cms.posts.index'));
+        $htmlResponse->assertSessionHas('error', '筛选参数不合法，已重置为默认列表');
+
+        // 2. HTMX 异步请求传入非法筛选，返回 422 局部可见错误卡片与 Toast 触发事件
+        $htmxResponse = $this
+            ->actingAs($this->viewer, 'admin')
+            ->withHeader('HX-Request', 'true')
+            ->get(route('admin.cms.posts.index', ['search' => ['test']]));
+        $htmxResponse->assertUnprocessable();
+        $htmxResponse->assertHeader('HX-Trigger');
+        $htmxResponse->assertHeader('HX-Push-Url', 'false');
+        $this->assertStringContainsString('搜索参数格式不正确', (string) $htmxResponse->getContent());
+        $this->assertSame(1, substr_count((string) $htmxResponse->getContent(), 'id="posts-table-card"'));
+
+        // 3. 服务层直接调用非法类型与状态时防御性降级，不抛出异常
+        $postService = app(\AdminFlow\CMS\Services\PostService::class);
+        $paginator = $postService->paginate([
+            'search' => ['array_search'],
+            'status' => 'not_a_valid_status',
+            'type' => 'not_a_valid_type',
+        ]);
+
+        $this->assertInstanceOf(\Illuminate\Contracts\Pagination\LengthAwarePaginator::class, $paginator);
+    }
+
+    public function test_migration_rollback_aborts_when_published_at_has_out_of_bounds_date(): void
+    {
+        Post::query()->create([
+            'user_id' => $this->editor->id,
+            'title' => '远期测试文章',
+            'slug' => 'future-date-rollback-test',
+            'body_markdown' => '正文',
+            'type' => PostType::POST,
+            'status' => PostStatus::PUBLISHED,
+            'published_at' => '2040-01-01 12:00:00',
+            'lock_version' => 1,
+        ]);
+
+        $migration = require
+            base_path(
+                'packages/cms/database/migrations/2026_11_20_000001_change_cms_posts_published_at_to_datetime.php',
+            );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('回滚中止：当前 cms_posts 表包含 1 条超出 MySQL TIMESTAMP 限制');
+
+        $migration->down();
+    }
+
+    public function test_editor_without_publish_permission_cannot_publish_or_unpublish_via_store_and_update(): void
+    {
+        // 模拟权限拆分：当前编辑角色拥有创建和编辑权限，但不具备发布权限
+        Gate::before(static function ($user, $ability): ?bool {
+            if ($ability === 'publish') {
+                return false;
+            }
+
+            return null;
+        });
+
+        // 1. 新建直接提交为已发布状态 -> 拒绝 403
+        $storeResponse = $this->actingAs($this->editor, 'admin')->post(route('admin.cms.posts.store'), [
+            'title' => '越权直接发布文章',
+            'body_markdown' => '正文',
+            'type' => 'post',
+            'status' => 'published',
+        ]);
+        $storeResponse->assertForbidden();
+
+        // 2. 新建提交为草稿状态 -> 允许通过
+        $storeDraftResponse = $this->actingAs($this->editor, 'admin')->post(route('admin.cms.posts.store'), [
+            'title' => '合法创建草稿文章',
+            'body_markdown' => '正文',
+            'type' => 'post',
+            'status' => 'draft',
+        ]);
+        $storeDraftResponse->assertRedirect();
+        $draftPost = Post::query()->where('title', '合法创建草稿文章')->firstOrFail();
+
+        // 3. 编辑普通保存：将草稿改为发布状态 -> 拒绝 403
+        $updatePublishResponse = $this->actingAs($this->editor, 'admin')->put(
+            route('admin.cms.posts.update', $draftPost),
+            [
+                'title' => '非法升级为发布',
+                'body_markdown' => '正文',
+                'type' => 'post',
+                'status' => 'published',
+                'lock_version' => $draftPost->lock_version,
+            ],
+        );
+        $updatePublishResponse->assertForbidden();
+
+        // 4. 创建一篇初始已发布文章，测试编辑角色试图撤回 -> 拒绝 403
+        $publishedPost = Post::query()->create([
+            'user_id' => $this->editor->id,
+            'title' => '已有发布文章',
+            'slug' => 'already-published-post',
+            'body_markdown' => '正文',
+            'type' => PostType::POST,
+            'status' => PostStatus::PUBLISHED,
+            'published_at' => now(),
+            'lock_version' => 1,
+        ]);
+
+        $unpublishResponse = $this->actingAs($this->editor, 'admin')->put(
+            route('admin.cms.posts.update', $publishedPost),
+            [
+                'title' => '非法撤回为草稿',
+                'body_markdown' => '正文',
+                'type' => 'post',
+                'status' => 'draft',
+                'lock_version' => 1,
+            ],
+        );
+        $unpublishResponse->assertForbidden();
+
+        // 5. 定时发布文章：尝试将未来发布时间改到过去 -> 拒绝 403
+        $scheduledPost = Post::query()->create([
+            'user_id' => $this->editor->id,
+            'title' => '未来定时文章',
+            'slug' => 'future-scheduled-post',
+            'body_markdown' => '正文',
+            'type' => PostType::POST,
+            'status' => PostStatus::PUBLISHED,
+            'published_at' => now()->addMonths(2),
+            'lock_version' => 1,
+        ]);
+
+        $modifyPublishDateResponse = $this->actingAs($this->editor, 'admin')->put(
+            route('admin.cms.posts.update', $scheduledPost),
+            [
+                'title' => '未来定时文章',
+                'body_markdown' => '正文',
+                'type' => 'post',
+                'status' => 'published',
+                'published_at' => now()->subDay()->format('Y-m-d H:i'),
+                'lock_version' => 1,
+            ],
+        );
+        $modifyPublishDateResponse->assertForbidden();
+
+        // 6. 编辑已发布文章文本但保持原发布时间 -> 允许通过
+        $normalPublishedUpdateResponse = $this->actingAs($this->editor, 'admin')->put(
+            route('admin.cms.posts.update', $scheduledPost),
+            [
+                'title' => '允许修补正文字眼',
+                'body_markdown' => '已更新字眼',
+                'type' => 'post',
+                'status' => 'published',
+                'published_at' => $scheduledPost->published_at->format('Y-m-d H:i'),
+                'lock_version' => 1,
+            ],
+        );
+        $normalPublishedUpdateResponse->assertRedirect();
+
+        // 7. 编辑草稿文章并保持草稿 -> 允许通过
+        $normalUpdateResponse = $this->actingAs($this->editor, 'admin')->put(
+            route('admin.cms.posts.update', $draftPost),
+            [
+                'title' => '合法修改草稿正文',
+                'body_markdown' => '正文已更新',
+                'type' => 'post',
+                'status' => 'draft',
+                'lock_version' => $draftPost->lock_version,
+            ],
+        );
+        $normalUpdateResponse->assertRedirect();
+    }
+
+    public function test_markdown_body_preserves_leading_spaces_and_trailing_newlines(): void
+    {
+        $bodyWithIndent = "    function helloWorld() {\n        return 'preserved';\n    }\n\n";
+
+        $response = $this->actingAs($this->editor, 'admin')->post(route('admin.cms.posts.store'), [
+            'title' => '缩进与换行保护测试',
+            'body_markdown' => $bodyWithIndent,
+            'type' => 'post',
+            'status' => 'draft',
+        ]);
+        $response->assertRedirect();
+
+        $post = Post::query()->where('title', '缩进与换行保护测试')->firstOrFail();
+        $this->assertSame($bodyWithIndent, $post->body_markdown);
+    }
+
+    public function test_admin_layout_contains_hx_history_false_and_zero_cache_size(): void
+    {
+        $response = $this->actingAs($this->editor, 'admin')->get(route('admin.cms.posts.index'));
+        $response->assertOk();
+        $content = (string) $response->getContent();
+        $this->assertStringContainsString('hx-history="false"', $content);
+        $this->assertStringContainsString('"historyCacheSize": 0', $content);
+        $this->assertStringContainsString("sessionStorage.removeItem('htmx-history-cache')", $content);
+    }
+
+    public function test_reset_filter_link_waits_for_successful_request_before_removal(): void
+    {
+        $response = $this->actingAs($this->editor, 'admin')->get(route('admin.cms.posts.index', [
+            'search' => 'keyword',
+        ]));
+        $response->assertOk();
+        $content = (string) $response->getContent();
+
+        $this->assertStringContainsString(
+            'hx-on::after-request="if (event.detail.successful) this.remove()"',
+            $content,
+        );
+        $this->assertStringNotContainsString(
+            'onclick="const f = this.closest(\'form\'); if (f) { f.reset(); f.querySelectorAll(\'input[name=search]\').forEach(el => el.value = \'\'); f.querySelectorAll(\'select\').forEach(el => el.value = \'\'); this.remove(); }"',
+            $content,
+        );
     }
 }

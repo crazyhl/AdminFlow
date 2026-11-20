@@ -54,7 +54,7 @@ class PostPolicy
     /**
      * 发布或撤回内容
      */
-    public function publish(User $actor, Post $post): bool
+    public function publish(User $actor, ?Post $post = null): bool
     {
         return $actor->hasPermission('cms.posts.publish');
     }

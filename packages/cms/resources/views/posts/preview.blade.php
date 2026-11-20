@@ -16,10 +16,17 @@
                 <span class="font-medium">受保护预览模式：</span>
                 <span class="text-stone-600 dark:text-stone-400">当前内容受鉴权策略保护，未经公开前绝不会泄露给外部访客、RSS 或 Sitemap。</span>
             </div>
-            <a href="{{ route('admin.cms.posts.edit', $post) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-[11px] font-semibold hover:bg-amber-300 transition-colors">
-                <i class="bi bi-pencil-square"></i>
-                <span>返回编辑</span>
-            </a>
+            @can('update', $post)
+                <a href="{{ route('admin.cms.posts.edit', $post) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-[11px] font-semibold hover:bg-amber-300 transition-colors">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>返回编辑</span>
+                </a>
+            @else
+                <a href="{{ route('admin.cms.posts.index') }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-100 text-[11px] font-semibold hover:bg-amber-300 transition-colors">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>返回列表</span>
+                </a>
+            @endcan
         </div>
 
         <!-- 渲染正文卡片 (Nordic Minimal 沉浸阅读排版) -->
