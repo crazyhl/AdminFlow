@@ -20,11 +20,14 @@ class MarkdownService
             return '';
         }
 
-        // 使用 Laravel 内置 CommonMark 管道，剥离危险的原始 HTML 与不安全链接协议
+        // 使用 Laravel 内置 CommonMark 管道，剥离危险的原始 HTML 与不安全链接协议，并启用软换行转 <br>
         $html = Str::markdown($markdown, [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
             'max_nesting_level' => 30,
+            'renderer' => [
+                'soft_break' => "<br />\n",
+            ],
         ]);
 
         return $this->sanitize($html);

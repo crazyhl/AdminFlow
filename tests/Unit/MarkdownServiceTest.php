@@ -47,4 +47,15 @@ class MarkdownServiceTest extends TestCase
     {
         $this->assertSame('', $this->service->render('   '));
     }
+
+    public function test_converts_soft_breaks_to_hard_breaks_in_paragraphs_and_quotes(): void
+    {
+        $markdown = "> 第一行引用\n第二行引用\n第三行引用";
+        $html = $this->service->render($markdown);
+
+        $this->assertStringContainsString('<blockquote>', $html);
+        $this->assertStringContainsString('第一行引用<br />', $html);
+        $this->assertStringContainsString('第二行引用<br />', $html);
+        $this->assertStringContainsString('第三行引用', $html);
+    }
 }
